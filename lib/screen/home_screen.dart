@@ -21,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   ).reference();
 
   List<Map<dynamic, dynamic>> products = [];
+  List<Map<dynamic, dynamic>> waters = [];
+  List<Map<dynamic, dynamic>> vegetables = [];
   @override
   void initState() {
     super.initState();
@@ -38,7 +40,11 @@ class _HomeScreenState extends State<HomeScreen> {
         data.forEach((key, value) {
           products.add(value);
         });
-
+        for(int i = 0;i<products.length;i++){
+          if(products[i]['type']=='water')
+            waters.add(products[i]);
+          else vegetables.add(products[i]);
+        }
         setState(() {}); // Trigger a rebuild with the fetched data
       }
     } catch (error) {
@@ -137,18 +143,36 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16.0),
             SizedBox(
-              height: 144.0, // Set the desired height for the product list
+              height: 144.0, 
               child: ListView.builder(
                 physics: AlwaysScrollableScrollPhysics(),
                 scrollDirection: Axis.horizontal,
-                itemCount: products.length,
+                itemCount: vegetables.length,
                 itemBuilder: (context, index) {
                   return Item(
                     path: localImage[index],
-                    name: products[index]['pro_name'],
-                    price: products[index]['price'],
-                    origin: products[index]['origin'],
-                    idx: index,
+                    name: vegetables[index]['pro_name'],
+                    price: vegetables[index]['price'],
+                    origin: vegetables[index]['origin'],
+                    idx: vegetables[index]['token'],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            SizedBox(
+              height: 144.0,
+              child: ListView.builder(
+                physics: AlwaysScrollableScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                itemCount: waters.length,
+                itemBuilder: (context, index) {
+                  return Item(
+                    path: localImage[index],
+                    name: waters[index]['pro_name'],
+                    price: waters[index]['price'],
+                    origin: waters[index]['origin'],
+                    idx: waters[index]['token'],
                   );
                 },
               ),

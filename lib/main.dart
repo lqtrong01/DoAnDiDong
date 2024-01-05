@@ -1,4 +1,3 @@
-import 'package:app_thuong_mai/Item/item.dart';
 import 'package:app_thuong_mai/firebase_options.dart';
 import 'package:app_thuong_mai/screen/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +21,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         '/':(context) => HomeScreen(),
-        '/item':(context) => Item(path: 'assets/image/banana.png', name: 'name', price: 'price')
       },
       initialRoute: '/',
     );

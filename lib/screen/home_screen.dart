@@ -147,6 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     path: localImage[index],
                     name: products[index]['pro_name'],
                     price: products[index]['price'],
+                    origin: products[index]['origin'],
+                    idx: index,
                   );
                 },
               ),

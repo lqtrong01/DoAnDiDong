@@ -30,19 +30,31 @@ class Item extends StatelessWidget {
         children: [
           Image.network(
             path,
-            height: 60.0,
-            width: 60.0,
-            fit: BoxFit.cover,
+            height: 50.0,
+            width: 50.0,
+            fit: BoxFit.contain,
           ),
-          SizedBox(height: 8.0),
           Container(
             width: 150,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(width: 16.0,),
+                SizedBox(width: 20.0,),
                 Text(
                   name,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            )
+          ),
+          Container(
+            width: 150,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                SizedBox(width: 20.0,),
+                Text(
+                  origin,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],

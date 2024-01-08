@@ -17,6 +17,7 @@ class _DetailItemState extends State<DetailItem> {
   ).reference();
 
   List<Map<dynamic, dynamic>> products = [];
+  double prize = 0.0;
   @override
   void initState() {
     super.initState();
@@ -74,11 +75,11 @@ class _DetailItemState extends State<DetailItem> {
 
   @override
   Widget build(BuildContext context) {
+    prize = products[widget.idx]['prize']['total_star'] /
+        products[widget.idx]['prize']['total_prize'];
     return Scaffold(
         appBar: AppBar(
-          iconTheme: IconThemeData(
-            color: Colors.black
-          ),
+          iconTheme: IconThemeData(color: Colors.black),
           backgroundColor: Colors.white,
           title: Text(
             'Thông tin chi tiết',
@@ -87,55 +88,84 @@ class _DetailItemState extends State<DetailItem> {
         ),
         body: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                // margin: EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.network(
-                      products[widget.idx]['path'],
-                      height: 280.0,
-                      width: 430.0,
-                      fit: BoxFit.contain,
+                        products[widget.idx]['path'],
+                        width: 280,
+                        height: 430,
+                        loadingBuilder: (BuildContext context, Widget child,
+                          ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      (loadingProgress.expectedTotalBytes ?? 1)
+                                  : null,
+                            ),
+                          );
+                        }
+                      },
+                      errorBuilder: (BuildContext context, Object error,
+                          StackTrace? stackTrace) {
+                        return Center(
+                          child: Text('Error loading image'),
+                        );
+                      },
                     ),
                     SizedBox(height: 8.0),
                     Container(
-                      padding: EdgeInsets.all(16.0),
-                      child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          products[widget.idx]['pro_name'],
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 34),
-                        ),
-                        Image.asset('assets/icons/icons8-heart-24.png')
-                      ],
-                    )),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            SizedBox(width: 16.0,),
+                            Text(
+                              products[widget.idx]['pro_name'],
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 34),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Image(image: AssetImage('assets/icons/icons8-heart-24.png')),
+                              onPressed: (){}
+                            ),
+                            const SizedBox(width: 16.0,)
+                          ],
+                        )),
                     Container(
-                      padding: EdgeInsets.all(16.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
+                          const SizedBox(width: 16.0,),
                           Container(
-                            
                             width: 100,
                             child: Row(
                               children: [
                                 IconButton(
-                                    onPressed: _minusQuantity,
-                                    icon: Icon(Icons.remove)),
+                                  onPressed: _minusQuantity,
+                                  icon: const Icon(Icons.remove)
+                                ),
                                 Text(_quantity.toString()),
                                 IconButton(
-                                    onPressed: _incrementCounter,
-                                    icon: Icon(Icons.add)),
+                                  onPressed: _incrementCounter,
+                                  icon: const Icon(Icons.add)
+                                ),
                               ],
                             ),
                           ),
+                          const Spacer(),
                           Text(
-                            'Price: ${products[widget.idx]['price'].toString()}',
+                            products[widget.idx]['price'].toString()
                           ),
+                          const SizedBox(width: 16.0,)
                         ],
                       ),
                     ),
@@ -143,50 +173,55 @@ class _DetailItemState extends State<DetailItem> {
                       thickness: 2,
                     ),
                     Container(
-                      padding: EdgeInsets.all(16.0),
                         child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Text(
+                              'Product detail',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                            Spacer(),
+                            IconButton(
+                                onPressed: _arrowTextDetail,
+                                icon: Icon(Icons.arrow_drop_down))
+                          ],
+                        )
+                      ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Product detail',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18),
+                          products[widget.idx]['description'],
+                          softWrap: _txtdetail,
                         ),
-                        IconButton(
-                            onPressed: _arrowTextDetail,
-                            icon: Icon(Icons.arrow_drop_down))
                       ],
-                    )),
-                    Text(
-                      products[widget.idx]['description'],
-                      softWrap: _txtdetail,
                     )
                   ],
                 ),
               ),
+              const SizedBox(height: 16.0,),
               Positioned(
                 bottom: 0,
-                left: 0,
-                right: 0,
                 child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(width: 1.0, color: Colors.grey),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          child: Text(
-                            'Thêm vào giỏ hàng',
-                            style: TextStyle(
-                                fontSize: 18, color: Colors.green[500]),
-                          ),
-                          onPressed: () {
-                            // Xử lý thêm giỏ hàng
-                          },
+                  decoration: BoxDecoration(
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        child: Text(
+                          'Thêm vào giỏ hàng',
+                          style: TextStyle(
+                              fontSize: 18, color: Colors.green[500]),
                         ),
-                      ],
-                    )),
+                        onPressed: () {
+                          // Xử lý thêm giỏ hàng
+                        },
+                      ),
+                    ],
+                  )
+                ),
               ),
               Positioned(
                 bottom: 60,
@@ -206,14 +241,14 @@ class _DetailItemState extends State<DetailItem> {
                         style: TextStyle(fontSize: 18),
                       ),
                       RatingBar.builder(
-                        initialRating: 3,
+                        initialRating: prize,
                         direction: Axis.horizontal,
                         allowHalfRating: true,
                         itemCount: 5,
                         itemSize: 24.0,
                         itemBuilder: (context, _) => Icon(
                           Icons.star,
-                          color: Colors.amber,
+                          color: Colors.yellowAccent,
                         ),
                         onRatingUpdate: (rating) {
                           // Xử lý khi đánh giá được cập nhật
@@ -225,7 +260,6 @@ class _DetailItemState extends State<DetailItem> {
               ),
             ],
           ),
-        )
-      );
+        ));
   }
 }

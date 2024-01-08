@@ -45,21 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
             waters.add(products[i]);
           else vegetables.add(products[i]);
         }
-        print(vegetables);
         setState(() {}); // Trigger a rebuild with the fetched data
       }
     } catch (error) {
       print("Error fetching data: $error");
     }
   }
-
-  final List<String> localImage = [
-    'assets/image/banana.png',
-    'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?q=80&w=1539&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'assets/image/green-apple.png',
-    'assets/image/orange.png',
-    'assets/image/strawbery.png'
-  ];
 
   final List<String> carouselImages = [
     'https://oatuu.org/wp-content/uploads/2023/06/adding-items-to-your-amazon-fresh-order-a-comprehensive-guide-2.jpg',
@@ -151,7 +142,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: vegetables.length,
                 itemBuilder: (context, index) {
                   if (index < vegetables.length) {
-                    print(vegetables[index]['token']);
                     return Item(
                       path: vegetables[index]['path'],
                       name: vegetables[index]['pro_name'],

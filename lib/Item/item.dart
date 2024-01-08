@@ -70,12 +70,18 @@ class Item extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: (){
-                    Navigator.push(
+                    try
+                    {
+                      Navigator.push(
                       context, 
                       MaterialPageRoute(
                         builder: (BuildContext context) => DetailItem(idx: idx,)
                       )
                     );
+                    }
+                    catch(e){
+                      print(e.toString());
+                    }
                   },
                   icon: Icon(Icons.add_box_outlined),
                   color: Colors.green[300],

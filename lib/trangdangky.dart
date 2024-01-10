@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -13,6 +15,91 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController txt_phone = TextEditingController();
   TextEditingController txt_password = TextEditingController();
   bool isCheckedVisiblePassword = false;
+  int userCount = 0;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _databaseReference = FirebaseDatabase(
+    databaseURL:
+        'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
+  ).reference();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loadUserCount();
+  }
+  /* void registerUser(){
+    String username = txt_username.text;
+    String phone = txt_phone.text;
+    String email = txt_email.text;
+    String password = txt_password.text;
+    DatabaseReference userReference = _databaseReference.child("users").child('user${userCount}').push();
+     userReference.set({
+      'username': username,
+      'email': email,
+      'phone': phone,
+      'password': password,
+    }).then((_) {
+      print("User registered successfully");
+      userCount++;
+    }).catchError((error) {
+      print("Error registering user: $error");
+      // Handle error
+    });
+  } */
+
+  Future<void> _loadUserCount() async {
+    try {
+      DatabaseEvent event = await _databaseReference.child('userCount').once();
+      DataSnapshot? dataSnapshot = event.snapshot;
+
+      if (dataSnapshot != null && dataSnapshot.value != null) {
+        int fetchedUserNumber = dataSnapshot.value as int;
+        setState(() {
+          userCount = fetchedUserNumber;
+        });
+      }
+    } catch (error) {
+      print("Error fetching data: $error");
+    }
+  }
+
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 5),
+        content: Text(message),
+      ),
+    );
+  }
+
+  void addNewUser() async {
+    String userName = 'user${userCount}';
+    String username = txt_username.text;
+    String phone = txt_phone.text;
+    String email = txt_email.text;
+    String password = txt_password.text;
+    try {
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await _databaseReference.child('users').child('${userName}').child('detail').set({
+        'username': username,
+        'phone': phone,
+        'email': email,
+        'password': password,
+        'token': userCount
+      });
+      showSnackbar('Tạo tài khoản thành công');
+      userCount++;
+      await _databaseReference.update({'userCount': userCount,});
+    } catch (error) {
+      showSnackbar('Tạo tài khoản thất bại');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,15 +169,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 18.0,),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [
-                  ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 100))),onPressed: () {
-                    
-                  }, child: const Text("Đăng ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0))),
+                  Expanded(child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),onPressed: () {
+                    setState(() {
+                      if(txt_username!=null&&txt_phone!=null&&txt_email!=null&&txt_password!=null){
+                        addNewUser();
+                      }
+                      
+                    });
+                  }, child: Container(child: Text("Đăng ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),)),)
                 ],),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [ const
                   Text("Đã có tài khoản? ",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),
                   TextButton(onPressed: () {
-                    
-                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0,color: Color.fromRGBO(58, 185, 37, 100))),)
+                    setState(() {
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                      Navigator.pushNamed(context, '/');
+                    });
+                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0,color: Color.fromRGBO(58, 185, 37, 1))),)
                 ],)
               ],
             ),

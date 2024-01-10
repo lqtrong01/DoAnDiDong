@@ -1,4 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -8,9 +12,84 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
   TextEditingController txt_username = TextEditingController();
   TextEditingController txt_password = TextEditingController();
+  late String userName;
+  late String passWord;
+
   bool isCheckedVisiblePassword = false;
+  bool isChecked = false;
+
+  Future<void> _loadSavedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isChecked = prefs.getBool('saveCredentials') ?? false;
+      if (isChecked) {
+        txt_username.text = prefs.getString('savedUsername') ?? '';
+        txt_password.text = prefs.getString('savedPassword') ?? '';
+      }
+    });
+  }
+
+  Future<void> _saveCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('saveCredentials', isChecked);
+    if (isChecked) {
+      prefs.setString('savedUsername', txt_username.text);
+      prefs.setString('savedPassword', txt_password.text);
+    }
+  }
+
+  Future<UserCredential?> signInWithEmailAndPassword(String email, String password) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return userCredential;
+    } catch (e) {
+      print("Lỗi đăng nhập: $e");
+      return null;
+    }
+  }
+
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 5),
+        content: Text(message),
+      ),
+    );
+  }
+
+  Future<UserCredential?> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount!.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleSignInAuthentication.accessToken,
+        idToken: googleSignInAuthentication.idToken,
+      );
+
+      return await _auth.signInWithCredential(credential);
+    } catch (error) {
+      print("Google sign in error: $error");
+      return null;
+    }
+  }
+
+  @override
+  void initState() {
+    _loadSavedCredentials();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,6 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,)),
           Container(
+            padding: EdgeInsets.all(10.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -30,8 +110,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
-                    labelText: "Username",
-                    hintText: "Nhập vào username",
+                    labelText: "Email",
+                    hintText: "Nhập vào email",
                   ),
                 ),
                 const SizedBox(height: 7.0,),
@@ -51,25 +131,44 @@ class _LoginScreenState extends State<LoginScreen> {
                     }, icon: isCheckedVisiblePassword?Icon(Icons.remove_red_eye):Icon(Icons.abc)),
                   ),
                 ),
-                const SizedBox(height: 25.0,),
-                Row(mainAxisAlignment: MainAxisAlignment.center,children: [
-                  ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),onPressed: () {
-                    
-                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)))
+                Row(children: [
+                  Checkbox(value: isChecked, onChanged: (value) {
+                    setState(() {
+                      isChecked=value!;
+                      _saveCredentials();
+                    });
+                  },),
+                  Text("Lưu đăng nhặp"),
                 ],),
-                const SizedBox(height: 30.0,),
+                Row(mainAxisAlignment: MainAxisAlignment.center,children: [
+                  Expanded(child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),onPressed: () {
+                    setState(() {
+                      userName = txt_username.text;
+                      passWord = txt_password.text;
+                      signInWithEmailAndPassword(userName, passWord).then((userCredential) {
+                      if (userCredential != null) {
+                        // Đăng nhập thành công, bạn có thể thực hiện các hành động sau đăng nhập ở đây
+                        showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
+                        
+                      } else {
+                        // Xử lý lỗi đăng nhập
+                        showSnackbar("Đăng nhập thất bại");
+                      }
+                    });
+                    });
+                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0))))
+                ],),
                 const Text("Hoặc",style: TextStyle(fontWeight: FontWeight.w300,fontSize: 18.0),),
                 const SizedBox(height: 20.0,),
-                Row(mainAxisAlignment: MainAxisAlignment.center,children: [
-                  ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(91, 127, 238, 1))),onPressed: () {
-                    
-                  }, child: const Text("G       Tiếp tục với Google",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)))
-                ],),
+                _googleSignInButton(),
                 const SizedBox(height: 20.0,),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [ const
                   Text("Chưa có tài khoản? ",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),
                   TextButton(onPressed: () {
-                    
+                    setState(() {
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                      Navigator.pushNamed(context, '/register');
+                    });
                   }, child: const Text("Đăng ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0,color: Color.fromRGBO(58, 185, 37, 1))),)
                 ],)
               ],
@@ -78,5 +177,25 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
+  }
+
+  Widget _googleSignInButton(){
+    return Center(child: SizedBox(
+      height: 50,
+      child: SignInButton(
+        Buttons.google,
+        text: "Tiếp tục với Google",
+        onPressed: () async{
+          UserCredential? userCredential = await _signInWithGoogle();
+          if(userCredential!=null){
+            setState(() {
+              Navigator.popUntil(context, (route) => route.isFirst);
+              Navigator.pushNamed(context, '/register');
+            });
+          }else{
+            showSnackbar("Đăng nhập bằng Google thất bại");
+          }
+      }),
+    ),);
   }
 }

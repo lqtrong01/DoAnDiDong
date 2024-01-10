@@ -1,5 +1,6 @@
 import 'package:app_thuong_mai/firebase_options.dart';
 import 'package:app_thuong_mai/screen/home_screen.dart';
+import 'package:app_thuong_mai/screen/order_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -21,8 +22,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         '/':(context) => HomeScreen(),
+        '/order': (context) => OrderScreen(userToken: 0),
       },
-      initialRoute: '/',
+      initialRoute: '/order',
     );
   }
 }

@@ -73,11 +73,11 @@ class Item extends StatelessWidget {
                     try
                     {
                       Navigator.push(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => DetailItem(idx: idx,)
-                      )
-                    );
+                        context, 
+                        MaterialPageRoute(
+                          builder: (context) => DetailItem(idx: idx,)
+                        )
+                      );
                     }
                     catch(e){
                       print(e.toString());

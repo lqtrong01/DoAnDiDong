@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ).reference();
 
   List<Map<dynamic, dynamic>> products = [];
+  List<Map<dynamic, dynamic>> displayProduct = [];
   List<Map<dynamic, dynamic>> waters = [];
   List<Map<dynamic, dynamic>> vegetables = [];
   @override
@@ -59,125 +60,207 @@ class _HomeScreenState extends State<HomeScreen> {
     'https://picsum.photos/200/300?random=4',
   ];
 
+  void performSearch(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        // Nếu truy vấn tìm kiếm trống, hiển thị tất cả sản phẩm
+        displayProduct = List.from(products);
+      } else {
+        // Nếu có truy vấn tìm kiếm, lọc danh sách theo truy vấn
+        displayProduct = products.where((product) {
+          return product['pro_name'].toLowerCase().contains(query.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+  void onSearchTextChanged() {
+    performSearch(txtSearch.text);
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(width: 1.0, color: Colors.grey),
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (customIcon.icon == Icons.search) {
-                          customIcon = const Icon(Icons.cancel);
-                          customSearchBar = Expanded(
-                            child: ListTile(
-                              trailing: Icon(
-                                Icons.search,
-                                color: Colors.black,
-                                size: 28,
-                              ),
-                              title: TextField(
-                                controller: txtSearch,
-                                decoration: InputDecoration(
-                                  hintText: 'Search anything...',
-                                  hintStyle: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                  border: InputBorder.none,
-                                ),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          );
-                        } else {
-                          customIcon = const Icon(Icons.search);
-                          customSearchBar = const Text('....');
-                          txtSearch.clear();
-                        }
-                      });
-                    },
-                    icon: customIcon,
+      body: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1.0, color: Colors.grey),
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  const SizedBox(width: 8.0),
-                  customSearchBar,
-                ],
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            CarouselSlider(
-              items: carouselImages.map((image) {
-                return Image(image: NetworkImage(image), fit: BoxFit.cover);
-              }).toList(),
-              options: CarouselOptions(
-                height: 100.0,
-                enlargeCenterPage: true,
-                autoPlay: true,
-                aspectRatio: 16 / 9,
-                autoPlayCurve: Curves.fastOutSlowIn,
-                enableInfiniteScroll: true,
-                autoPlayAnimationDuration: Duration(milliseconds: 800),
-                viewportFraction: 0.8,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            SizedBox(
-              height: 144.0, 
-              child: ListView.builder(
-                physics: AlwaysScrollableScrollPhysics(),
-                scrollDirection: Axis.horizontal,
-                itemCount: vegetables.length,
-                itemBuilder: (context, index) {
-                  if (index < vegetables.length) {
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            if (customIcon.icon == Icons.search) {
+                              customIcon = const Icon(Icons.cancel);
+                              customSearchBar = Expanded(
+                                child: ListTile(
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.search, size: 24,),
+                                    color: Colors.black,
+                                    onPressed: (){
+
+                                    },
+                                  ),
+                                  title: TextField(
+                                    controller: txtSearch,
+                                    onChanged: (value) {
+                                      onSearchTextChanged();
+                                    },
+                                    decoration: const InputDecoration(
+                                      hintText: 'Search anything...',
+                                      hintStyle: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      border: InputBorder.none,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              );
+                              onSearchTextChanged();
+
+
+                            } else {
+                              customIcon = const Icon(Icons.search);
+                              customSearchBar = const Text('....');
+                              txtSearch.clear();
+                            }
+                          });
+                        },
+                        icon: customIcon,
+                      ),
+                      const SizedBox(width: 8.0),
+                      customSearchBar,
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                CarouselSlider(
+                  items: carouselImages.map((image) {
+                    return Image(image: NetworkImage(image), fit: BoxFit.cover);
+                  }).toList(),
+                  options: CarouselOptions(
+                    height: 100.0,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    aspectRatio: 16 / 9,
+                    autoPlayCurve: Curves.fastOutSlowIn,
+                    enableInfiniteScroll: true,
+                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                    viewportFraction: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                SizedBox(
+                  height: 144.0, 
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: vegetables.length,
+                    itemBuilder: (context, index) {
+                      if (index < vegetables.length) {
+                        return Item(
+                          path: vegetables[index]['path'],
+                          name: vegetables[index]['pro_name'],
+                          price: vegetables[index]['price'],
+                          origin: vegetables[index]['origin'],
+                          idx: vegetables[index]['token']??0, // Use 0 as the default value if 'token' is null
+                        );
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                CarouselSlider(
+                  items: carouselImages.map((image) {
+                    return Image(image: NetworkImage(image), fit: BoxFit.cover);
+                  }).toList(),
+                  options: CarouselOptions(
+                    height: 100.0,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    aspectRatio: 16 / 9,
+                    autoPlayCurve: Curves.fastOutSlowIn,
+                    enableInfiniteScroll: true,
+                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                    viewportFraction: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                SizedBox(
+                  height: 144.0,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: waters.length,
+                    itemBuilder: (context, index) {
+                      return Item(
+                        path: waters[index]['path'],
+                        name: waters[index]['pro_name'],
+                        price: waters[index]['price'],
+                        origin: waters[index]['origin'],
+                        idx: (waters[index]['token']).toInt(),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                CarouselSlider(
+                  items: carouselImages.map((image) {
+                    return Image(image: NetworkImage(image), fit: BoxFit.cover);
+                  }).toList(),
+                  options: CarouselOptions(
+                    height: 100.0,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    aspectRatio: 16 / 9,
+                    autoPlayCurve: Curves.fastOutSlowIn,
+                    enableInfiniteScroll: true,
+                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                    viewportFraction: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 16.0,
+                    mainAxisSpacing: 16.0,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
                     return Item(
-                      path: vegetables[index]['path'],
-                      name: vegetables[index]['pro_name'],
-                      price: vegetables[index]['price'],
-                      origin: vegetables[index]['origin'],
-                      idx: vegetables[index]['token']??0, // Use 0 as the default value if 'token' is null
+                      path: products[index]['path'],
+                      name: products[index]['pro_name'],
+                      price: products[index]['price'],
+                      origin: products[index]['origin'],
+                      idx: (products[index]['token']).toInt(),
                     );
-                  } else {
-                    // Handle the case when the index is out of range
-                    return Container(); // or any other fallback UI
-                  }
-                },
-              ),
+                  },
+                )
+              ],
             ),
-            const SizedBox(height: 16.0),
-            SizedBox(
-              height: 144.0,
-              child: ListView.builder(
-                physics: AlwaysScrollableScrollPhysics(),
-                scrollDirection: Axis.horizontal,
-                itemCount: waters.length,
-                itemBuilder: (context, index) {
-                  return Item(
-                    path: waters[index]['path'],
-                    name: waters[index]['pro_name'],
-                    price: waters[index]['price'],
-                    origin: waters[index]['origin'],
-                    idx: (waters[index]['token']).toInt(),
-                  );
-                },
-              ),
-            )
-          ],
-        ),
+          )
+        ],
       ),
-      bottomNavigationBar: BotNav(idx: 0),
+      bottomNavigationBar:const BotNav(idx: 0),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:app_thuong_mai/navigate/bot_nav.dart';
+import 'package:app_thuong_mai/screen/order_screen.dart';
 import 'package:app_thuong_mai/user_auth/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -108,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: ListTile(
                     onTap: () {
-                      
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen(userToken: 0),));
                     },
                     leading: Icon(Icons.shopping_bag_outlined),
                     title: Text('Đơn hàng'),

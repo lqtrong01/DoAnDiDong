@@ -1,14 +1,11 @@
 
-
-import 'dart:html';
-
 import 'package:app_thuong_mai/Item/item.dart';
 import 'package:app_thuong_mai/Item/order_item.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class OrderScreen extends StatefulWidget {
-  final String userToken;
+  final int userToken;
   const OrderScreen({super.key, required this.userToken});
 
   @override
@@ -36,25 +33,22 @@ class _OrderScreenState extends State<OrderScreen> {
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
         Map<dynamic, dynamic> data = (dataSnapshot.value as Map)['users'];
-
         data.forEach((key, value) {
           user_cat.add(value);
         });
-        List<dynamic> orders = user_cat[0]['orders'];
-        for(var order in orders){
-          lst_order.add(order);
+
+        for(int i = 0; i<user_cat[widget.userToken]['orders'].length;i++){
+          lst_order.add(user_cat[widget.userToken]['orders']);
         }
         
-        print(lst_order);
-        print(user_cat[0]['orders']['order0']['name']);
-        user_cat[0]['orders']['order0'];
-        
+        print(user_cat); 
         setState(() {}); // Trigger a rebuild with the fetched data
       }
     } catch (error) {
       print("Error fetching data: $error");
     }
   }
+
 
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -70,31 +64,37 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đơn hàng'),
+        iconTheme: IconThemeData(color: Colors.black),
+          backgroundColor: Colors.white,
+          leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_outlined),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        title: Text('Đơn hàng', style: TextStyle(color: Colors.black),),
       ),
-      body: SingleChildScrollView(
-        child: ListView.builder(
-          itemCount: user_cat[0]['orders'].length,
+      body: ListView.builder(
+          physics: AlwaysScrollableScrollPhysics(),
+          itemCount: lst_order.length,
           itemBuilder: (context, index){
-            if(user_cat[0]['orders']['order0']['status']==true)
+            if(user_cat[widget.userToken]['orders']['order0']['status']==true)
               titleOrder = 'Bạn đã đặt thành công một ${user_cat[0]['orders']['order0']['name']}';
-            else if(user_cat[0]['orders']['order0']['status']==false)
+            else if(user_cat[widget.userToken]['orders']['order0']['status']==false)
               titleOrder = 'Bạn đã hủy đơn hàng';
             else titleOrder = 'Giao hàng không thành công';
 
             return OrderItem(
               title: Text(titleOrder, style: TextStyle(color: user_cat[0]['orders']['order${index}']['status']?Colors.green[500]:Colors.yellow,fontSize: 20),), 
-              path: user_cat[0]['orders']['order${index}']['path'], 
-              name: user_cat[0]['orders']['order${index}']['name'], 
-              price: user_cat[0]['orders']['order${index}']['price'], 
-              origin: user_cat[0]['orders']['order${index}']['origin'], 
-              quantity: user_cat[0]['orders']['order${index}']['quantity'], 
+              path: user_cat[widget.userToken]['orders']['order${index}']['path'], 
+              name: user_cat[widget.userToken]['orders']['order${index}']['name'], 
+              price: user_cat[widget.userToken]['orders']['order${index}']['price'], 
+              origin: user_cat[widget.userToken]['orders']['order${index}']['origin'], 
+              quantity: user_cat[widget.userToken]['orders']['order${index}']['quantity'], 
               idx: 0
             );
           }
-            
         ),
-      ),
     );
   }
 }

@@ -1,4 +1,6 @@
+import 'package:app_thuong_mai/duytridangnhap.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,14 +22,21 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController txt_password = TextEditingController();
   late String userName;
   late String passWord;
+  late int userToken;
 
   bool isCheckedVisiblePassword = true;
   bool isChecked = false;
 
-  Future<void> _loadSavedCredentials() async {
+  late List<Map<dynamic, dynamic>> users = [];
+  final DatabaseReference _databaseReference = FirebaseDatabase(
+    databaseURL:
+        'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
+  ).reference();
+
+  Future<void> _loadSavedUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      isChecked = prefs.getBool('saveCredentials') ?? false;
+      isChecked = prefs.getBool('saveUser') ?? false;
       if (isChecked) {
         txt_username.text = prefs.getString('savedUsername') ?? '';
         txt_password.text = prefs.getString('savedPassword') ?? '';
@@ -35,12 +44,31 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _saveCredentials() async {
+  Future<void> _saveUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('saveCredentials', isChecked);
+    prefs.setBool('saveUser', isChecked);
     if (isChecked) {
       prefs.setString('savedUsername', txt_username.text);
       prefs.setString('savedPassword', txt_password.text);
+      Signing(isChecked: isChecked);
+    }
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      DatabaseEvent event = await _databaseReference.once();
+      DataSnapshot? dataSnapshot = event.snapshot;
+
+      if (dataSnapshot != null && dataSnapshot.value != null) {
+        Map<dynamic, dynamic> data = (dataSnapshot.value as Map)['users'];
+
+        data.forEach((key, value) {
+          users.add(value);
+        });
+        setState(() {});
+      }
+    } catch (error) {
+      print("Error fetching data: $error");
     }
   }
 
@@ -86,8 +114,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    _loadSavedCredentials();
+    _loadSavedUser();
     isCheckedVisiblePassword=true;
+    _fetchData();
     super.initState();
   }
 
@@ -136,26 +165,36 @@ class _LoginScreenState extends State<LoginScreen> {
                   Checkbox(value: isChecked, onChanged: (value) {
                     setState(() {
                       isChecked=value!;
-                      _saveCredentials();
+                      _saveUser();
                     });
                   },),
                   Text("Lưu đăng nhặp",style: TextStyle(fontSize: 18.0),),
                 ],),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [
-                  Expanded(child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),onPressed: () {
-                    setState(() {
-                      userName = txt_username.text;
-                      passWord = txt_password.text;
-                      signInWithEmailAndPassword(userName, passWord).then((userCredential) {
-                      if (userCredential != null) {
-                        // Đăng nhập thành công, bạn có thể thực hiện các hành động sau đăng nhập ở đây
-                        showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
-                        
-                      } else {
-                        // Xử lý lỗi đăng nhập
-                        showSnackbar("Đăng nhập thất bại");
-                      }
-                    });
+                  Expanded(child: 
+                    ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),
+                    onPressed: () {
+                      setState(() {
+                        userName = txt_username.text;
+                        passWord = txt_password.text;
+                        signInWithEmailAndPassword(userName, passWord).then((userCredential) {
+                        if (userCredential != null) {
+                          if(users!=null){
+                            for(int i=0;i<users.length;i++){
+                              if(users[i]['email']==userName){
+                                userToken=users[i]['token'];
+                              }
+                            }
+                          }
+                          // Đăng nhập thành công, bạn có thể thực hiện các hành động sau đăng nhập ở đây
+                          showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
+                          Navigator.popUntil(context, (route) => route.isFirst);
+                          /* Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(),)), */
+                        } else {
+                          // Xử lý lỗi đăng nhập
+                          showSnackbar("Đăng nhập thất bại");
+                        }
+                      });
                     });
                   }, child: const Text("Đăng Nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0))))
                 ],),

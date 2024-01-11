@@ -14,7 +14,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController txt_email = TextEditingController();
   TextEditingController txt_phone = TextEditingController();
   TextEditingController txt_password = TextEditingController();
-  bool isCheckedVisiblePassword = false;
+  bool isCheckedVisiblePassword = true;
+  bool isEmailValid=false;
   int userCount = 0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseReference = FirebaseDatabase(
@@ -24,29 +25,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    super.initState();
     _loadUserCount();
+    isCheckedVisiblePassword=true;
+    super.initState();
   }
-  /* void registerUser(){
-    String username = txt_username.text;
-    String phone = txt_phone.text;
-    String email = txt_email.text;
-    String password = txt_password.text;
-    DatabaseReference userReference = _databaseReference.child("users").child('user${userCount}').push();
-     userReference.set({
-      'username': username,
-      'email': email,
-      'phone': phone,
-      'password': password,
-    }).then((_) {
-      print("User registered successfully");
-      userCount++;
-    }).catchError((error) {
-      print("Error registering user: $error");
-      // Handle error
-    });
-  } */
 
   Future<void> _loadUserCount() async {
     try {
@@ -103,22 +85,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: SingleChildScrollView(child: Column(
         children: [
-          Expanded(
+          Container(
             child: Image.asset('assets/img/dangky.jpg',
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,),
+              height: MediaQuery.of(context).size.height/2-90,),
           ),
           Container(
-            padding: EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(18.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [ 
                 const Row(children: [
-                   Text("Đăng ký", style: TextStyle(fontSize: 32.0,fontWeight: FontWeight.w500),textAlign: TextAlign.start,),
+                   Text("Đăng ký", style: TextStyle(color: Colors.black,fontSize: 32.0,fontWeight: FontWeight.w500),textAlign: TextAlign.start,),
                 ],),
+                const SizedBox(height: 7.0,),
                 const Text("Nhập thông tin của bạn vào ô bên dưới để đăng ký", style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300),),
                 const SizedBox(height: 7.0,),
                 TextField(
@@ -144,10 +127,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: txt_email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
+                  onChanged: (value) {
+                    setState(() {
+                      isEmailValid = _isValidEmail(value);
+                    });
+                  },
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
                     labelText: "Email",
                     hintText: "Nhập vào email",
+                    suffixIcon: isEmailValid ? Icon(Icons.check,color: Color.fromRGBO(87, 175, 115, 1),):null,
                   ),
                 ),
                 const SizedBox(height: 7.0,),
@@ -164,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       setState(() {
                         
                       });
-                    }, icon: isCheckedVisiblePassword?Icon(Icons.remove_red_eye):Icon(Icons.abc)),
+                    }, icon: isCheckedVisiblePassword?Icon(Icons.password):Icon(Icons.remove_red_eye)),
                   ),
                 ),
                 const SizedBox(height: 18.0,),
@@ -173,10 +162,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     setState(() {
                       if(txt_username!=null&&txt_phone!=null&&txt_email!=null&&txt_password!=null){
                         addNewUser();
+                        resetData();
                       }
-                      
                     });
-                  }, child: Container(child: Text("Đăng ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),)),)
+                  }, child: Container(child: Text("Đăng Ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),)),)
                 ],),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [ const
                   Text("Đã có tài khoản? ",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),
@@ -191,7 +180,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           )
         ],
-      ),
+      ),),
     );
+  }
+
+  bool _isValidEmail(String email) {
+    final emailRegex =
+        RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  void resetData(){
+    txt_username.clear();
+    txt_phone.clear();
+    txt_email.clear();
+    txt_password.clear();
+    isEmailValid=false;
   }
 }

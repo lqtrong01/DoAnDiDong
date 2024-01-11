@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late String userName;
   late String passWord;
 
-  bool isCheckedVisiblePassword = false;
+  bool isCheckedVisiblePassword = true;
   bool isChecked = false;
 
   Future<void> _loadSavedCredentials() async {
@@ -87,24 +87,25 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     _loadSavedCredentials();
+    isCheckedVisiblePassword=true;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: SingleChildScrollView(child: Column(
         children: [
-          Expanded(child: Image.asset('assets/img/dangnhap.jpg',
+          Container(child: Image.asset('assets/img/dangnhap.jpg',
             width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,)),
+            height: MediaQuery.of(context).size.height/2-90,)),
           Container(
             padding: EdgeInsets.all(10.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text("Get your groceries with Vephenomsoft",style: TextStyle(fontWeight: FontWeight.w600,fontSize: 32.0),),
-                const SizedBox(height: 7.0,),
+                const SizedBox(height: 15.0,),
                 TextField(
                   controller: txt_username,
                   keyboardType: TextInputType.text,
@@ -128,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() {
                         
                       });
-                    }, icon: isCheckedVisiblePassword?Icon(Icons.remove_red_eye):Icon(Icons.abc)),
+                    }, icon: isCheckedVisiblePassword?Icon(Icons.password):Icon(Icons.remove_red_eye)),
                   ),
                 ),
                 Row(children: [
@@ -138,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       _saveCredentials();
                     });
                   },),
-                  Text("Lưu đăng nhặp"),
+                  Text("Lưu đăng nhặp",style: TextStyle(fontSize: 18.0),),
                 ],),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [
                   Expanded(child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),onPressed: () {
@@ -156,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       }
                     });
                     });
-                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0))))
+                  }, child: const Text("Đăng Nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0))))
                 ],),
                 const Text("Hoặc",style: TextStyle(fontWeight: FontWeight.w300,fontSize: 18.0),),
                 const SizedBox(height: 20.0,),
@@ -175,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           )
         ],
-      ),
+      ),),
     );
   }
 

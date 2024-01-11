@@ -8,7 +8,7 @@ class RegisterScreen extends StatefulWidget {
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
-
+//TEST 
 class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController txt_username = TextEditingController();
   TextEditingController txt_email = TextEditingController();

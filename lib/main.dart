@@ -1,6 +1,7 @@
 import 'package:app_thuong_mai/firebase_options.dart';
 import 'package:app_thuong_mai/trangdangky.dart';
 import 'package:app_thuong_mai/trangdangnhap.dart';
+import 'package:app_thuong_mai/trangdangxuat.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        fontFamily: 'Newsreader',
         // This is the theme of your application.
         //
         // Try running your application with "flutter run". You'll see the
@@ -36,6 +38,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/':(context) => const LoginScreen(),
         '/register':(context) => const RegisterScreen(),
+        '/logout':(context) => const LogoutScreen(),
       }
     );
   }

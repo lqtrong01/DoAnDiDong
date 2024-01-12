@@ -183,6 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             for(int i=0;i<users.length;i++){
                               if(users[i]['email']==userName){
                                 userToken=users[i]['token'];
+                                print(userToken);
                               }
                             }
                           }

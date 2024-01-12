@@ -8,7 +8,7 @@ class RegisterScreen extends StatefulWidget {
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
-//TEST 
+
 class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController txt_username = TextEditingController();
   TextEditingController txt_email = TextEditingController();
@@ -16,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController txt_password = TextEditingController();
   bool isCheckedVisiblePassword = true;
   bool isEmailValid=false;
+  bool isPhoneValid=false;
   int userCount = 0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseReference = FirebaseDatabase(
@@ -56,7 +57,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void addNewUser() async {
-    String userName = 'user${userCount}';
     String username = txt_username.text;
     String phone = txt_phone.text;
     String email = txt_email.text;
@@ -67,12 +67,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: password,
       );
 
-      await _databaseReference.child('users').child('${userName}').child('detail').set({
+      String userId = userCredential.user!.uid;
+
+      await _databaseReference.child('users').child('$userCount').child('detail').set({
         'username': username,
         'phone': phone,
         'email': email,
         'password': password,
-        'token': userCount
+        'token': userId,
+        'categoryCount': 0,
+        'orderCount': 0,
       });
       showSnackbar('Tạo tài khoản thành công');
       userCount++;
@@ -122,6 +126,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: "Phone",
                     hintText: "Nhập số điện thoại",
                   ),
+                  onChanged: (value) {
+                    setState(() {
+                      _isValidPhone(value);
+                    });
+                  },
                 ),
                 const SizedBox(height: 7.0,),
                 TextFormField(
@@ -163,9 +172,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if(txt_username!=null&&txt_phone!=null&&txt_email!=null&&txt_password!=null){
                         addNewUser();
                         resetData();
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                        Navigator.pushNamed(context, '/');
                       }
                     });
-                  }, child: Container(child: Text("Đăng Ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),)),)
+                  }, child: Text("Đăng Ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),)),
                 ],),
                 Row(mainAxisAlignment: MainAxisAlignment.center,children: [ const
                   Text("Đã có tài khoản? ",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),
@@ -188,6 +199,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final emailRegex =
         RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
     return emailRegex.hasMatch(email);
+  }
+
+  bool _isValidPhone(String phone) {
+    final phoneRegex =
+        RegExp(r'^[\w-]+(\.[\w-]+)*[a-zA-Z]{2,7}$');
+    return phoneRegex.hasMatch(phone);
   }
 
   void resetData(){

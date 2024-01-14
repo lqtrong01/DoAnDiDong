@@ -1,3 +1,5 @@
+import 'package:animate_do/animate_do.dart';
+import 'package:app_thuong_mai/loadingscreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +19,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isCheckedVisiblePassword = true;
   bool isEmailValid=false;
   bool isPhoneValid=false;
+  bool isLoading = false;
   int userCount = 0;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
@@ -70,11 +74,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       String userId = userCredential.user!.uid;
 
       await _databaseReference.child('users').child('$userCount').child('detail').set({
-        'username': username,
+        'name': username,
         'phone': phone,
         'email': email,
+        'location':"",
         'password': password,
-        'token': userId,
+        'token': userCount.toString(),
+        'userID': userId,
         'categoryCount': 0,
         'orderCount': 0,
       });
@@ -87,105 +93,128 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => isLoading
+    ? LoadingScreen()
+    : Scaffold(
       body: SingleChildScrollView(child: Column(
         children: [
-          Container(
-            child: Image.asset('assets/img/dangky.jpg',
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height/2-90,),
-          ),
+          Stack(children: [
+            FadeInDown(duration: const Duration(seconds: 1),
+              child: Container(child: Image.asset('assets/img/dangky.jpg',
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height/2-90,),
+          ),),
+            Positioned(
+              left: 135.0,
+              top: 220.0,
+              child: FadeInUp(delay: const Duration(milliseconds: 100), duration: const Duration(seconds: 1),
+                child: const Text("REGISTER", style: TextStyle(fontSize: 48.0, fontWeight: FontWeight.w600, color: Colors.white))),),
+          ],),
           Container(
             padding: const EdgeInsets.all(18.0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [ 
-                const Row(children: [
-                   Text("Đăng ký", style: TextStyle(color: Colors.black,fontSize: 32.0,fontWeight: FontWeight.w500),textAlign: TextAlign.start,),
-                ],),
-                const SizedBox(height: 7.0,),
-                const Text("Nhập thông tin của bạn vào ô bên dưới để đăng ký", style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300),),
-                const SizedBox(height: 7.0,),
-                TextField(
-                  controller: txt_username,
-                  keyboardType: TextInputType.text,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
-                    labelText: "Username",
-                    hintText: "Nhập vào username",
+                FadeInLeft(delay: const Duration(milliseconds: 200), duration: const Duration(seconds: 1),
+                  child: Container(padding: const EdgeInsets.only(bottom: 7.0),child: const Text("Đăng ký", style: TextStyle(color: Colors.black,fontSize: 32.0,fontWeight: FontWeight.w500),textAlign: TextAlign.start,)),),
+                FadeInRight(delay: const Duration(milliseconds: 300), duration: const Duration(seconds: 1),
+                  child: Container(padding: const EdgeInsets.only(bottom: 7.0),child: const Text("Nhập thông tin của bạn vào ô bên dưới để đăng ký", style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300),)),),
+                FadeInDown(delay: const Duration(milliseconds: 400), duration: const Duration(seconds: 1),
+                  child: Container(padding: const EdgeInsets.only(bottom: 7.0),
+                    child: TextField(
+                      controller: txt_username,
+                      keyboardType: TextInputType.text,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
+                        hintText: "Username",
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 7.0,),
-                TextField(
-                  controller: txt_phone,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
-                    labelText: "Phone",
-                    hintText: "Nhập số điện thoại",
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _isValidPhone(value);
-                    });
-                  },
-                ),
-                const SizedBox(height: 7.0,),
-                TextFormField(
-                  controller: txt_email,
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (value) {
-                    setState(() {
-                      isEmailValid = _isValidEmail(value);
-                    });
-                  },
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
-                    labelText: "Email",
-                    hintText: "Nhập vào email",
-                    suffixIcon: isEmailValid ? Icon(Icons.check,color: Color.fromRGBO(87, 175, 115, 1),):null,
+                FadeInDown(delay: const Duration(milliseconds: 500), duration: const Duration(seconds: 1),
+                  child: Container(padding: const EdgeInsets.only(bottom: 7.0),
+                    child: TextField(
+                      controller: txt_phone,
+                      keyboardType: TextInputType.phone,
+                      onChanged: (value) {
+                        setState(() {
+                          isPhoneValid =_isValidPhone(value);
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
+                        hintText: "Phone",
+                        suffixIcon: isPhoneValid ? Icon(Icons.check,color: Color.fromRGBO(87, 175, 115, 1),):null,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 7.0,),
-                TextField(
-                  obscureText: isCheckedVisiblePassword,
-                  controller: txt_password,
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
-                    labelText: "Password",
-                    hintText: "Nhập vào password",
-                    suffixIcon: IconButton(onPressed: () {
-                      isCheckedVisiblePassword=!isCheckedVisiblePassword;
-                      setState(() {
-                        
-                      });
-                    }, icon: isCheckedVisiblePassword?Icon(Icons.password):Icon(Icons.remove_red_eye)),
+                FadeInDown(delay: const Duration(milliseconds: 600), duration: const Duration(seconds: 1),
+                  child: Container(padding: const EdgeInsets.only(bottom: 7.0),
+                    child: TextField(
+                      controller: txt_email,
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (value) {
+                        setState(() {
+                          isEmailValid = _isValidEmail(value);
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
+                        hintText: "Email",
+                        suffixIcon: isEmailValid ? Icon(Icons.check,color: Color.fromRGBO(87, 175, 115, 1),):null,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 18.0,),
-                Row(mainAxisAlignment: MainAxisAlignment.center,children: [
+                FadeInDown(delay: const Duration(milliseconds: 700), duration: const Duration(seconds: 1),
+                  child: Container(padding: const EdgeInsets.only(bottom: 7.0),
+                    child: TextField(
+                      obscureText: isCheckedVisiblePassword,
+                      controller: txt_password,
+                      keyboardType: TextInputType.visiblePassword,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.zero),borderSide: BorderSide(color: Colors.black,width: 0.1)),
+                        hintText: "Password",
+                        suffixIcon: IconButton(onPressed: () {
+                          isCheckedVisiblePassword=!isCheckedVisiblePassword;
+                          setState(() {
+                            
+                          });
+                        }, icon: isCheckedVisiblePassword?Icon(Icons.password):Icon(Icons.remove_red_eye)),
+                      ),
+                    ),
+                  ),
+                ),
+                FadeInUp(delay: const Duration(milliseconds: 800), duration: const Duration(seconds: 1),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center,children: [
                   Expanded(child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),onPressed: () {
                     setState(() {
-                      if(txt_username!=null&&txt_phone!=null&&txt_email!=null&&txt_password!=null){
+                      if(txt_username!=null&&txt_password!=null&&isEmailValid&&isPhoneValid){
                         addNewUser();
                         resetData();
-                        Navigator.popUntil(context, (route) => route.isFirst);
-                        Navigator.pushNamed(context, '/');
+                      }else{
+                        showSnackbar('SĐT hoặc Email không hợp lệ!');
                       }
                     });
                   }, child: Text("Đăng Ký",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),)),
-                ],),
-                Row(mainAxisAlignment: MainAxisAlignment.center,children: [ const
-                  Text("Đã có tài khoản? ",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),
-                  TextButton(onPressed: () {
-                    setState(() {
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                      Navigator.pushNamed(context, '/');
-                    });
-                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0,color: Color.fromRGBO(58, 185, 37, 1))),)
+                ],),),
+                Row(mainAxisAlignment: MainAxisAlignment.center,children: [
+                  FadeInLeft(delay: const Duration(milliseconds: 900), duration: const Duration(seconds: 1),
+                    child: Text("Đã có tài khoản? ",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)),),
+                  FadeInRight(delay: const Duration(milliseconds: 1000), duration: const Duration(seconds: 1),
+                    child: TextButton(onPressed: () async{
+                      setState(() {
+                        isLoading=true; 
+                      });
+                      await Future.delayed(const Duration(seconds: 2));
+                      setState(() {
+                        isLoading=false;
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                        Navigator.pushNamed(context, '/');
+                      });
+                  }, child: const Text("Đăng nhập",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0,color: Color.fromRGBO(58, 185, 37, 1))),)),
                 ],)
               ],
             ),
@@ -193,7 +222,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ],
       ),),
     );
-  }
 
   bool _isValidEmail(String email) {
     final emailRegex =
@@ -202,9 +230,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool _isValidPhone(String phone) {
-    final phoneRegex =
-        RegExp(r'^[\w-]+(\.[\w-]+)*[a-zA-Z]{2,7}$');
-    return phoneRegex.hasMatch(phone);
+    final phoneregex = 
+        RegExp(r'^(03[2-9]|07[0|6|7|8|9]|08[1|2|3|4|5]|09[0|1|2|3|4|5|6|7|8|9])+([0-9]{7})\b');
+    return phoneregex.hasMatch(phone);
   }
 
   void resetData(){

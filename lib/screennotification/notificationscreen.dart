@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:app_thuong_mai/screennotification/notification_item.dart';
 
 class ThongbaoMua extends StatefulWidget {
-  const ThongbaoMua({super.key});
+  final int userToken;
+  const ThongbaoMua({super.key,required this.userToken});
 
   @override
   State<ThongbaoMua> createState() => _ThongbaoMuaState();
 }
 
 class _ThongbaoMuaState extends State<ThongbaoMua> {
+  TextEditingController status = TextEditingController();
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseReference = FirebaseDatabase(
@@ -18,32 +20,32 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
   int notiCount=0;
-  List<Map<dynamic, dynamic>> user_cat = [];
-  List<Map<dynamic, dynamic>> lst_notification = [];
-  // final notifications = [
-  //   'Bạn vừa thanh toán thành công một đơn hàng',
-  //   'Bạn vừa hủy thành công một đơn hàng',
-  //   'Bạn vừa hủy thành công một đơn hàng',
-  //   'Bạn vừa thanh toán thành công một đơn hàng',
-  //   'Bạn vừa thanh toán thành công một đơn hàng',
-  // ];
+  List<Map<dynamic,dynamic>> user_cat = [];
+  List<dynamic> lst_notification = [];
+
   Future<void> _fetchData() async {
     try {
       DatabaseEvent event = await _databaseReference.once();
       DataSnapshot? dataSnapshot = event.snapshot;
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
-        Map<dynamic, dynamic> data = (dataSnapshot.value as Map)['users'];
-        data.forEach((key, value) {
+        List<dynamic> data = (dataSnapshot.value as Map)['users'];
+        data.forEach((value) {
           user_cat.add(value);
         });
-
-        for(int i = 0; i<user_cat[0]['notifications'].length;i++){
-          lst_notification.add(user_cat[0]['notifications']);
+        try{
+          for (var value in user_cat[widget.userToken]['notifications']) {
+            lst_notification.add(value);
+          }
+        }catch(e){
+          print('error'+e.toString());
         }
-        
-        print(user_cat); 
-        setState(() {}); // Trigger a rebuild with the fetched data
+        // print(user.length);
+        // print(lst_order);
+        // print(lst_order.length);
+        setState(() {
+          
+        }); // Trigger a rebuild with the fetched data
       }
     } catch (error) {
       print("Error fetching data: $error");
@@ -57,6 +59,16 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
       ),
     );
   }
+    void editUser() async {
+    try {
+        await _databaseReference.child('users/${0}').child('notifications/${0}').update({
+          'status': false,
+        });
+      
+    } catch (error) {
+      print(error.toString());
+    }
+  }
   String titleOrder = '';
 
   @override
@@ -64,6 +76,7 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
     _fetchData();
     super.initState();
   }
+  
   @override
   Widget build(BuildContext context) {
 
@@ -71,95 +84,38 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
       appBar: AppBar(
         title: Text('Thông báo', style: TextStyle(color: Colors.black),),
       ),
-      body:lst_notification.isEmpty?
-      Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children:[
-              Icon(Icons.notifications, size: 50, color: Colors.yellow),
-              SizedBox(height: 30,),
-              Text('Không có thông báo', style: TextStyle(color: Colors.green, fontSize: 20)),
-              SizedBox(height: 10,),
-              ElevatedButton(
-                onPressed: () {},
-                child: Text('Quay về Trang Chủ'),
-                style: ElevatedButton.styleFrom(primary: Colors.green),
-              ),
-            ],
-          ),
-        ):
-       ListView.builder(
-          physics: AlwaysScrollableScrollPhysics(),
-          itemCount: lst_notification.length,
-          itemBuilder: (context, index){
-           // print(lst_notification[index]);
-            if(user_cat[0]['orders']['order0']['status']==true)
-              titleOrder = '${user_cat[0]['notifications']['notifi${index}']} ${user_cat[0]['orders']['order${index}']['name']}';
-            else if(user_cat[0]['orders']['order0']['status']==false)
-              titleOrder = 'Bạn đã hủy đơn hàng';
-            else titleOrder = 'Giao hàng không thành công';
+      body:
+ListView.builder(
+  physics: AlwaysScrollableScrollPhysics(),
+  itemCount: lst_notification.length,
+  itemBuilder: (context, index) {
+    final item = lst_notification[index];
+     if (user_cat[widget.userToken]['notifications'][index]['status'] == true) 
+       titleOrder = '${user_cat[widget.userToken]['notifications'][index]['title']} ${user_cat[widget.userToken]['orders'][index]['name']}';
+//       return NotificationItem(title: titleOrder);
+    return Dismissible(
+      key: Key(item.toString()),
+      onDismissed: (direction) {
+        // Xóa mục khỏi danh sách
+        setState(() {
+          lst_notification.removeAt(index);
+          editUser();
+        });
+        // Thay đổi trạng thái đơn hàng thành false
+        user_cat[widget.userToken]['orders'][index]['status'] = false;
 
-            return NotificationItem(title: titleOrder);
-          }
-        ),
+        // Hiển thị một snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đơn hàng đã được xóa')),
+        );
+        
+      },
+      background: Container(color: Colors.red),
+      child: NotificationItem(title: titleOrder),
+    );
+  },
+),
+
     );
   }
-    // Scaffold(
-    //   appBar: AppBar(
-    //     title: Text('Thông báo'),
-    //   ),
-    //   body: lst_notification.isEmpty?ListView.builder(
-    //           itemCount: lst_notification.length,
-    //           itemBuilder: (context, index) {
-    //             return Dismissible(
-    //               key: Key(lst_notification[index]['']),
-    //               onDismissed: (direction) {
-    //                 setState(() {
-    //                   lst_notification.removeAt(index);
-    //                 });
-    //                 ScaffoldMessenger.of(context).showSnackBar(
-    //                   SnackBar(content: Text('$lst_notification xóa')),
-    //                 );
-    //               },
-    //               background: Container(color: Colors.red),
-    //               child: ListTile(
-    //                 leading: Icon(Icons.notifications, color: Colors.amber),
-    //                 title: Text(lst_notification[index]['no${index}']),
-    //               ),
-    //             );
-    //           },
-    //         ):
-    //       Center(
-    //       child: Column(
-    //         mainAxisAlignment: MainAxisAlignment.center,
-    //         children:[
-    //           Icon(Icons.notifications, size: 50, color: Colors.yellow),
-    //           SizedBox(height: 30,),
-    //           Text('Không có thông báo', style: TextStyle(color: Colors.green, fontSize: 20)),
-    //           SizedBox(height: 10,),
-    //           ElevatedButton(
-    //             onPressed: () {},
-    //             child: Text('Quay về Trang Chủ'),
-    //             style: ElevatedButton.styleFrom(primary: Colors.green),
-    //           ),
-    //         ],
-    //       ),
-    //     ),
-          
-    //   bottomNavigationBar: BottomNavigationBar(
-    //     backgroundColor: Colors.amber,
-    //     items: <BottomNavigationBarItem>[
-    //       BottomNavigationBarItem(
-    //           icon: Icon(Icons.home, color: Colors.blue), label: 'Home'),
-    //       BottomNavigationBarItem(
-    //           icon: Icon(Icons.shopping_cart, color: Colors.blue), label: 'Cart'),
-    //       BottomNavigationBarItem(
-    //           icon: Icon(Icons.notifications, color: Colors.blue),
-    //           label: 'Thông báo'),
-    //       BottomNavigationBarItem(
-    //           icon: Icon(Icons.person, color: Colors.blue), label: 'Tôi'),
-    //     ],
-    //   ),
-    // );
-  
 }

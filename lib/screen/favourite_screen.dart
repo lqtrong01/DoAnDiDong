@@ -1,23 +1,23 @@
-import 'package:app_thuong_mai/Item/order_item.dart';
+import 'package:app_thuong_mai/Item/favourite_item.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-class OrderScreen extends StatefulWidget {
+class FavouriteScreen extends StatefulWidget {
   final int userToken;
-  const OrderScreen({super.key, required this.userToken});
+  const FavouriteScreen({super.key, required this.userToken});
 
   @override
-  State<OrderScreen> createState() => _OrderScreenState();
+  State<FavouriteScreen> createState() => _favouriteScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> {
+class _favouriteScreenState extends State<FavouriteScreen> {
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
 
   final List<Map<dynamic, dynamic>> user = [];
-  final List<dynamic> lst_order = [];
+  final List<dynamic> lst_favourite = [];
 
   @override
   void initState() {
@@ -36,16 +36,16 @@ class _OrderScreenState extends State<OrderScreen> {
           user.add(value);
         });
         try{
-          for (var value in user[widget.userToken]['orders']) {
-            lst_order.add(value);
+          for (var value in user[widget.userToken]['favourites']) {
+            lst_favourite.add(value);
           }
         }
         catch(e){
           print('error'+e.toString());
         }
         print(user.length);
-        print(lst_order);
-        print(lst_order.length);
+        print(lst_favourite);
+        print(lst_favourite.length);
         setState(() {
           
         }); // Trigger a rebuild with the fetched data
@@ -83,24 +83,15 @@ class _OrderScreenState extends State<OrderScreen> {
       body: ListView.builder(
           physics: AlwaysScrollableScrollPhysics(),
           scrollDirection: Axis.vertical,
-          itemCount: lst_order.length,
+          itemCount: lst_favourite.length,
           itemBuilder: (context, index){
             try{
-              if(user[widget.userToken]['orders'][index]['status']==true)
-                titleOrder = 'Bạn đã đặt thành công một ${user[widget.userToken]['orders'][index]['name']}';
-              else if(user[widget.userToken]['orders'][index]['status']==false)
-                titleOrder = 'Bạn đã hủy đơn hàng';
-              else titleOrder = 'Giao hàng không thành công';
-
-              return OrderItem(
-                title: Text(titleOrder, style: TextStyle(color: user[widget.userToken]['orders'][index]['status']?Colors.green[500]:Colors.yellow,fontSize: 20),), 
+              return FavouriteItem(
                 path: user[widget.userToken]['orders'][index]['path'], 
                 name: user[widget.userToken]['orders'][index]['name'], 
-                price: user[widget.userToken]['orders'][index]['price'], 
                 origin: user[widget.userToken]['orders'][index]['origin'], 
-                quantity: user[widget.userToken]['orders'][index]['quantity'],
-                status: user[widget.userToken]['orders'][index]['status'],
-                idx: widget.userToken
+                price: user[widget.userToken]['orders'][index]['price'], 
+                status: user[widget.userToken]['orders'][index]['status']
               );
             }catch(e){
               print(e.toString());

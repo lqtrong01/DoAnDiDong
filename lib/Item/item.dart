@@ -7,6 +7,7 @@ class Item extends StatelessWidget {
   final String price;
   final String origin;
   final int idx;
+  final int userToken;
 
   const Item({
     Key? key,
@@ -15,15 +16,15 @@ class Item extends StatelessWidget {
     required this.price,
     required this.origin,
     required this.idx,
+    required this.userToken
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(8.0),
-      width: 150.0,
+      margin: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        border: Border.all(width: 1.0, color: Colors.black),
+        border: Border.all(width: 1.0, color: const Color.fromRGBO(196, 198, 198, 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -34,15 +35,16 @@ class Item extends StatelessWidget {
             width: 50.0,
             fit: BoxFit.contain,
           ),
+          const SizedBox(height: 6.0,),
           Container(
             width: 150,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(width: 20.0,),
+                const SizedBox(width: 20.0,),
                 Text(
                   name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             )
@@ -52,10 +54,10 @@ class Item extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(width: 20.0,),
+                const SizedBox(width: 20.0,),
                 Text(
                   origin,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             )
@@ -75,7 +77,7 @@ class Item extends StatelessWidget {
                       Navigator.push(
                         context, 
                         MaterialPageRoute(
-                          builder: (context) => DetailItem(idx: idx,)
+                          builder: (context) => DetailItem(idx: idx,userToken: userToken,)
                         )
                       );
                     }
@@ -83,8 +85,8 @@ class Item extends StatelessWidget {
                       print(e.toString());
                     }
                   },
-                  icon: Icon(Icons.add_box_outlined),
-                  color: Colors.green[300],
+                  icon: const Icon(Icons.add_box_outlined),
+                  color: const Color.fromRGBO(87, 175, 115, 1),
                 )
               ],
             ),

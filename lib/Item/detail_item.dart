@@ -1,10 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter/material.dart';
 
 class DetailItem extends StatefulWidget {
   final int idx;
-  const DetailItem({super.key, required this.idx});
+  final int userToken;
+  const DetailItem({super.key, required this.idx, required, required this.userToken});
 
   @override
   State<DetailItem> createState() => _DetailItemState();
@@ -17,17 +19,23 @@ class _DetailItemState extends State<DetailItem> {
   ).reference();
 
   List<Map<dynamic, dynamic>> products = [];
+  List<dynamic> infoUser = [];
+  List<Map<dynamic,dynamic>> lst_cat = [];
   double prize = 0.0;
+  late int indexCheck;
+  late bool isCheck;
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _checkData();
     _loadCountCategory();
+    isCheck = false;
   }
 
   Future<void> _loadCountCategory() async {
     try {
-      DatabaseEvent event = await _databaseReference.child('categoryCount').once();
+      DatabaseEvent event = await _databaseReference.child('users/${widget.userToken}').child('categoryCount').once();
       DataSnapshot? dataSnapshot = event.snapshot;
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
@@ -35,7 +43,6 @@ class _DetailItemState extends State<DetailItem> {
         setState(() {
           catNumber = fetchedUserNumber;
         });
-        print(catNumber);
       }
     } catch (error) {
       print("Error fetching data: $error");
@@ -47,9 +54,9 @@ class _DetailItemState extends State<DetailItem> {
       DataSnapshot? dataSnapshot = event.snapshot;
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
-        Map<dynamic, dynamic> data = (dataSnapshot.value as Map)['shop_cat'];
+        List<dynamic> data = (dataSnapshot.value as Map)['shop_cat'];
 
-        data.forEach((key, value) {
+        data.forEach((value) {
           products.add(value);
         });
         setState(() {}); // Trigger a rebuild with the fetched data
@@ -63,9 +70,10 @@ class _DetailItemState extends State<DetailItem> {
   bool _txtdetail = true;
   int catNumber = 0;
 
+
   void _incrementCounter() {
     setState(() {
-      _quantity++;
+      _quantity>=products[widget.idx]['quantity']?products[widget.idx]['quantity']:_quantity++;
     });
   }
 
@@ -83,18 +91,81 @@ class _DetailItemState extends State<DetailItem> {
         _txtdetail = true;
     });
   }
-  void addNewCategory() async {
-    String catName = 'cat${catNumber}';
+
+  Future<void> _checkData() async {
     try {
-      await _databaseReference.child('users/user0').child('cats/${catName}').set({
-        'name': products[widget.idx]['pro_name'],
-        'price': products[widget.idx]['price'].toString(),
-        'quantity': _quantity,
-        'status': true,
-      });
-      showSnackbar('Thêm thành công vào giỏ hàng');
-      catNumber++;
-      await _databaseReference.update({'categoryCount': catNumber,});
+      // Get the current authenticated user
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Use orderByChild and equalTo to fetch user data based on email
+        DatabaseEvent event = await _databaseReference
+            .child('users')
+            .orderByChild('detail/email')
+            .equalTo(user.email)
+            .once();
+        DataSnapshot? dataSnapshot = event.snapshot;
+        
+        if (dataSnapshot != null && dataSnapshot.value != null) {
+          List<dynamic> userDataMap = dataSnapshot.value as List;
+          userDataMap.forEach((value){
+            infoUser.add(value);
+          });
+
+          setState(() {
+          });
+          print(infoUser[0]['cats']);
+          for(var values in infoUser[0]['cats']){
+            lst_cat.add(values);
+          }
+          // print(indexCheck);
+        } else {
+          // Handle the case where no data is found
+          print("No data found for user with email: ${user.email}");
+        }
+      }
+    } catch (error) {
+      // Handle errors during the data fetching process
+      print("Error fetching data: $error");
+    }
+  }
+
+  void addNewCategory() async {
+    try {
+      for(int i = 0;i<lst_cat.length;i++){
+        if(lst_cat[i]['name']==products[widget.idx]['pro_name'] && lst_cat[i]['status']==true){
+          indexCheck = lst_cat[i]['cat_token'];
+          isCheck = true;
+        }
+      }
+      
+      if(isCheck){
+          await _databaseReference.child('users/${widget.userToken}').child('cats/${indexCheck}').set({
+          'path': products[widget.idx]['path'],
+          'name': products[widget.idx]['pro_name'],
+          'price': products[widget.idx]['price'].toString(),
+          'quantity': (_quantity+lst_cat[indexCheck]['quantity']),
+          'status': true,
+          'token': widget.idx,
+          'cat_token': indexCheck
+        });
+        showSnackbar('Cập nhật giỏ hàng thành công');
+        isCheck = false;
+      }
+      else{
+        await _databaseReference.child('users/${widget.userToken}').child('cats/${catNumber}').set({
+          'path': products[widget.idx]['path'],
+          'name': products[widget.idx]['pro_name'],
+          'price': products[widget.idx]['price'].toString(),
+          'quantity': _quantity,
+          'status': true,
+          'token': widget.idx,
+          'cat_token': catNumber
+        });
+        showSnackbar('Thêm thành công vào giỏ hàng');
+        catNumber++;
+        await _databaseReference.update({'categoryCount': catNumber,});
+      }     
     } catch (error) {
       showSnackbar('Thêm thất bại');
     }
@@ -121,23 +192,37 @@ class _DetailItemState extends State<DetailItem> {
         actions:[
           TextButton(
             onPressed: ()=> ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
-            child: const Text('Dismiss')
+            child: const Text('Không', style: TextStyle(color: Colors.white))
           ),
           TextButton(
             onPressed: (){
-              addNewCategory();
+              setState(() {
+                addNewCategory();
+              });
             }, 
-            child: const Text('Continue')
+            child: const Text('Có', style: TextStyle(color: Colors.white))
           ),
         ]
       )
     );
   }
+  String path = '';
+  String name = '';
+  String price = '';
+  String description = '';
 
   @override
   Widget build(BuildContext context) {
-    prize = products[widget.idx]['prize']['total_star'] /
-        products[widget.idx]['prize']['total_prize'];
+    try
+    {
+      prize = products[widget.idx]['prize']['total_star'] / products[widget.idx]['prize']['total_prize'];
+      path = products[widget.idx]['path'];
+      name = products[widget.idx]['pro_name'];
+      price = products[widget.idx]['price'];
+      description = products[widget.idx]['description'];
+
+    } catch(e){print(e.toString());}
+        
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.black),
@@ -163,7 +248,7 @@ class _DetailItemState extends State<DetailItem> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.network(
-                      products[widget.idx]['path'],
+                      path,
                       width: 280,
                       height: 430,
                       loadingBuilder: (BuildContext context, Widget child,
@@ -188,14 +273,13 @@ class _DetailItemState extends State<DetailItem> {
                       );
                     },
                   ),
-                  const SizedBox(height: 8.0),
                   Container(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         const SizedBox(width: 16.0,),
                         Text(
-                          products[widget.idx]['pro_name'],
+                          name,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 34),
                         ),
                         const Spacer(),
@@ -203,7 +287,7 @@ class _DetailItemState extends State<DetailItem> {
                           icon: const Image(image: AssetImage('assets/icons/icons8-heart-24.png')),
                           onPressed: (){}
                         ),
-                        const SizedBox(width: 16.0,)
+                      
                       ],
                     )
                   ),
@@ -211,9 +295,7 @@ class _DetailItemState extends State<DetailItem> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const SizedBox(width: 16.0,),
                         Container(
-                          width: 100,
                           child: Row(
                             children: [
                               IconButton(
@@ -225,12 +307,14 @@ class _DetailItemState extends State<DetailItem> {
                                 onPressed: _incrementCounter,
                                 icon: const Icon(Icons.add)
                               ),
+                              SizedBox(width: 5,)
                             ],
                           ),
                         ),
                         const Spacer(),
                         Text(
-                          products[widget.idx]['price'].toString()
+                          price.toString(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 16.0,)
                       ],
@@ -256,7 +340,7 @@ class _DetailItemState extends State<DetailItem> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        products[widget.idx]['description'],
+                        description,
                         softWrap: _txtdetail,
                       ),
                     ],
@@ -268,14 +352,17 @@ class _DetailItemState extends State<DetailItem> {
             Positioned(
               bottom: 0,
               child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(width: 0.5, color: const Color.fromRGBO(196, 198, 198, 1))
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     TextButton(
-                      child: Text(
+                      child: const Text(
                         'Thêm vào giỏ hàng',
                         style: TextStyle(
-                            fontSize: 18, color: Colors.green[500]),
+                            fontSize: 18, color: Color.fromRGBO(87, 175, 115, 1)),
                       ),
                       onPressed: () {
                         showMaterialBanner('Bạn muốn thêm sản phẩm này vào giỏ hàng');
@@ -285,6 +372,7 @@ class _DetailItemState extends State<DetailItem> {
                 )
               ),
             ),
+            SizedBox(height: 2.0,),
             Positioned(
               bottom: 60,
               left: 0,
@@ -310,7 +398,7 @@ class _DetailItemState extends State<DetailItem> {
                       itemSize: 24.0,
                       itemBuilder: (context, _) => const Icon(
                         Icons.star,
-                        color: Colors.yellowAccent,
+                        color: Color.fromRGBO(244, 166, 13, 1),
                       ),
                       onRatingUpdate: (rating) {
                         // Xử lý khi đánh giá được cập nhật

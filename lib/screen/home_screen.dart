@@ -5,7 +5,8 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final int userToken;
+  const HomeScreen({Key? key, required this.userToken}) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<dynamic, dynamic>> displayProduct = [];
   List<Map<dynamic, dynamic>> waters = [];
   List<Map<dynamic, dynamic>> vegetables = [];
+
   @override
   void initState() {
     super.initState();
@@ -36,15 +38,17 @@ class _HomeScreenState extends State<HomeScreen> {
       DataSnapshot? dataSnapshot = event.snapshot;
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
-        Map<dynamic, dynamic> data = (dataSnapshot.value as Map)['shop_cat'];
+        List<dynamic> data = (dataSnapshot.value as Map)['shop_cat'];
 
-        data.forEach((key, value) {
+        data.forEach((value) {
           products.add(value);
         });
-        for(int i = 0;i<products.length;i++){
-          if(products[i]['type']=='water')
+        print(products);
+        for (int i = 0; i < products.length; i++) {
+          if (products[i]['type'] == 'water')
             waters.add(products[i]);
-          else vegetables.add(products[i]);
+          else
+            vegetables.add(products[i]);
         }
         setState(() {}); // Trigger a rebuild with the fetched data
       }
@@ -52,13 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Error fetching data: $error");
     }
   }
-
-  final List<String> carouselImages = [
-    'https://oatuu.org/wp-content/uploads/2023/06/adding-items-to-your-amazon-fresh-order-a-comprehensive-guide-2.jpg',
-    'https://picsum.photos/200/300?random=2',
-    'https://picsum.photos/200/300?random=3',
-    'https://picsum.photos/200/300?random=4',
-  ];
 
   void performSearch(String query) {
     setState(() {
@@ -68,16 +65,17 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         // Nếu có truy vấn tìm kiếm, lọc danh sách theo truy vấn
         displayProduct = products.where((product) {
-          return product['pro_name'].toLowerCase().contains(query.toLowerCase());
+          return product['pro_name']
+              .toLowerCase()
+              .contains(query.toLowerCase());
         }).toList();
       }
     });
   }
+
   void onSearchTextChanged() {
     performSearch(txtSearch.text);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                const SizedBox(
+                  height: 8.0,
+                ),
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(width: 1.0, color: Colors.grey),
@@ -104,17 +105,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               customSearchBar = Expanded(
                                 child: ListTile(
                                   trailing: IconButton(
-                                    icon: Icon(Icons.search, size: 24,),
+                                    icon: const Icon(
+                                      Icons.search,
+                                      size: 24,
+                                    ),
                                     color: Colors.black,
-                                    onPressed: (){
-
-                                    },
+                                    onPressed: () {},
                                   ),
                                   title: TextField(
                                     controller: txtSearch,
                                     onChanged: (value) {
                                       onSearchTextChanged();
                                     },
+                                    
                                     decoration: const InputDecoration(
                                       hintText: 'Search anything...',
                                       hintStyle: TextStyle(
@@ -131,8 +134,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               );
                               onSearchTextChanged();
-
-
                             } else {
                               customIcon = const Icon(Icons.search);
                               customSearchBar = const Text('....');
@@ -142,12 +143,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         icon: customIcon,
                       ),
-                      const SizedBox(width: 8.0),
+                      const SizedBox(
+                        width: 8.0,
+                      ),
                       customSearchBar,
                     ],
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 CarouselSlider(
                   items: carouselImages.map((image) {
                     return Image(image: NetworkImage(image), fit: BoxFit.cover);
@@ -159,33 +164,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     aspectRatio: 16 / 9,
                     autoPlayCurve: Curves.fastOutSlowIn,
                     enableInfiniteScroll: true,
-                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                    autoPlayAnimationDuration:
+                        const Duration(milliseconds: 800),
                     viewportFraction: 0.8,
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 SizedBox(
-                  height: 144.0, 
+                  height: 150.0,
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     itemCount: vegetables.length,
                     itemBuilder: (context, index) {
-                      if (index < vegetables.length) {
-                        return Item(
+                        print('vegetable' + products[index]['token'].toString());
+                        print(index.toString());
+                        return vegetables.isEmpty?Container():Item(
                           path: vegetables[index]['path'],
                           name: vegetables[index]['pro_name'],
                           price: vegetables[index]['price'],
                           origin: vegetables[index]['origin'],
-                          idx: vegetables[index]['token']??0, // Use 0 as the default value if 'token' is null
+                          idx: vegetables[index]['token'] ?? 0,
+                          userToken: widget.userToken,
                         );
-                      } else {
-                        return Container();
-                      }
                     },
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 CarouselSlider(
                   items: carouselImages.map((image) {
                     return Image(image: NetworkImage(image), fit: BoxFit.cover);
@@ -197,29 +206,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     aspectRatio: 16 / 9,
                     autoPlayCurve: Curves.fastOutSlowIn,
                     enableInfiniteScroll: true,
-                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                    autoPlayAnimationDuration:
+                        const Duration(milliseconds: 800),
                     viewportFraction: 0.8,
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 SizedBox(
-                  height: 144.0,
+                  height: 150.0,
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
                     scrollDirection: Axis.horizontal,
                     itemCount: waters.length,
                     itemBuilder: (context, index) {
+                      print('water' + waters[index]['token'].toString());
                       return Item(
                         path: waters[index]['path'],
                         name: waters[index]['pro_name'],
                         price: waters[index]['price'],
                         origin: waters[index]['origin'],
-                        idx: (waters[index]['token']).toInt(),
+                        idx: waters[index]['token'],
+                        userToken: widget.userToken,
                       );
                     },
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 CarouselSlider(
                   items: carouselImages.map((image) {
                     return Image(image: NetworkImage(image), fit: BoxFit.cover);
@@ -231,16 +247,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     aspectRatio: 16 / 9,
                     autoPlayCurve: Curves.fastOutSlowIn,
                     enableInfiniteScroll: true,
-                    autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                    autoPlayAnimationDuration:
+                        const Duration(milliseconds: 800),
                     viewportFraction: 0.8,
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
+                    crossAxisCount: 2,
                     crossAxisSpacing: 16.0,
                     mainAxisSpacing: 16.0,
                   ),
@@ -251,7 +270,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       name: products[index]['pro_name'],
                       price: products[index]['price'],
                       origin: products[index]['origin'],
-                      idx: (products[index]['token']).toInt(),
+                      idx: index,
+                      userToken: widget.userToken,
                     );
                   },
                 )
@@ -260,7 +280,14 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      bottomNavigationBar:const BotNav(idx: 0),
+      bottomNavigationBar: const BotNav(idx: 0),
     );
   }
+
+  final List<String> carouselImages = [
+    'https://oatuu.org/wp-content/uploads/2023/06/adding-items-to-your-amazon-fresh-order-a-comprehensive-guide-2.jpg',
+    'https://picsum.photos/200/300?random=2',
+    'https://firebasestorage.googleapis.com/v0/b/app-thuong-mai-ndtt.appspot.com/o/72bc2ace72850.png?alt=media&token=cfd5dd2d-b2c7-45e8-b7c2-4bb9f6c7d88c',
+    'https://picsum.photos/200/300?random=4',
+  ];
 }

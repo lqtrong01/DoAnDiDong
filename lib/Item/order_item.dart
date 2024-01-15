@@ -1,6 +1,4 @@
-
-
-import 'package:app_thuong_mai/Item/item.dart';
+import 'package:app_thuong_mai/Item/order_detail.dart';
 import 'package:flutter/material.dart';
 
 class OrderItem extends StatelessWidget {
@@ -10,6 +8,7 @@ class OrderItem extends StatelessWidget {
   final String price;
   final String origin;
   final int quantity;
+  final bool status;
   final int idx;
   const OrderItem({
     super.key, 
@@ -19,6 +18,7 @@ class OrderItem extends StatelessWidget {
     required this.price, 
     required this.origin,
     required this.quantity,
+    required this.status,
     required this.idx
   });
 
@@ -32,7 +32,7 @@ class OrderItem extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 12.0),
+            padding: const EdgeInsets.only(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -49,6 +49,13 @@ class OrderItem extends StatelessWidget {
             title: Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
             subtitle: Text(origin),
             trailing: Text('x'+quantity.toString()+'\n'+price),
+            onTap: (){
+              try{
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> OrderDetail(idx: idx, quantity: quantity, status: status)));
+              }catch(e){
+                print(e.toString());
+              }
+            },
           )
         ],
       ),

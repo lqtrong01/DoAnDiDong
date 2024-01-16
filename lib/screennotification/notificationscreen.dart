@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app_thuong_mai/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -61,9 +63,9 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
     );
   }
   var so=0;
-    void editUser() async {
+    void editUser(int index) async {
     try {
-        await _databaseReference.child('users/${0}').child('notifications/${so++}').update({
+        await _databaseReference.child('users/${0}').child('notifications/${index}').update({
           'status': false,
         });
       
@@ -71,6 +73,25 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
       print(error.toString());
     }
   }
+  void _resetFormData() {
+    _databaseReference.child('users').child(widget.userToken.toString()).child('notifications').onValue.listen((event) {
+      _handleDataChange(event.snapshot);
+    });
+  }
+
+  void _handleDataChange(DataSnapshot snapshot) {
+    try {
+      if (snapshot != null && snapshot.value != null) {
+        List<dynamic> notifications = snapshot.value as List;
+        setState(() {
+          lst_notification = notifications;
+        });
+      }
+    } catch (error) {
+      print("Lỗi khi xử lý thay đổi dữ liệu: $error");
+    }
+  }
+  
   String titleOrder = '';
 
   @override
@@ -78,8 +99,9 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
     _fetchData();
     super.initState();
     ThongbaoMua(userToken: 0);
+    _resetFormData();
+    
   }
-  
   @override
 Widget build(BuildContext context) {
   // Kiểm tra xem tất cả các thông báo có trạng thái là false không
@@ -114,6 +136,7 @@ Widget build(BuildContext context) {
           physics: AlwaysScrollableScrollPhysics(),
           itemCount: lst_notification.length,
           itemBuilder: (context, index) {
+            try{
             final item = lst_notification[index];
             if (user_cat[widget.userToken]['notifications'][index]['status'] == true) {
               titleOrder = '${user_cat[widget.userToken]['notifications'][index]['title']} ${user_cat[widget.userToken]['orders'][index]['name']}';
@@ -122,7 +145,8 @@ Widget build(BuildContext context) {
                 onDismissed: (direction) {
                   setState(() {
                     lst_notification.removeAt(index);
-                    editUser(); // Gọi phương thức update
+                    ThongbaoMua(userToken: 0);
+                    editUser(index); // Gọi phương thức update
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Đơn hàng đã được xóa')),
@@ -134,7 +158,13 @@ Widget build(BuildContext context) {
             } else {
               return Container(); // Không hiển thị thông báo có trạng thái false
             }
+            }
+             catch (error) {
+      print("Lỗi khi xử lý thay đổi dữ liệu: $error");
+             }
+            
           },
+
         ),
   );
 }

@@ -35,8 +35,7 @@ class MyApp extends StatelessWidget {
       ),
       routes:{
         '/':(context) => MyHomePage(),
-        '/not':(context)=>ThongbaoMua(userToken: 0,)
-
+        '/not':(context)=>ThongbaoMua(userToken: 0),
       },
       initialRoute: '/',
     );

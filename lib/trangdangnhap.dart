@@ -1,7 +1,9 @@
+
 import 'package:animate_do/animate_do.dart';
-import 'package:app_thuong_mai/google_sign_in.dart';
+import 'package:app_thuong_mai/forgotpassword.dart';
 import 'package:app_thuong_mai/loadingscreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -31,12 +33,14 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isCheckedVisiblePassword = true;
   bool isChecked = false;
   bool isLoading = false;
+  bool isClosing = false;
 
   List<Map<dynamic, dynamic>> users = [];
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
+
 
 
   Future<void> _loadSavedUser() async {
@@ -178,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'notificationCount':0,
                 'favouriteCount':0,
               });
-              
+
               await _databaseReference.child('users').child('$userCount').child('detail').set({
                 'avatar': avatar,
                 'name': name,
@@ -203,11 +207,23 @@ class _LoginScreenState extends State<LoginScreen> {
       return null;
     }
   }
+
+  void _showForgotPasswordBottomSheet() {
+  showModalBottomSheet(
+    context: context,
+    
+    shape: RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.vertical(top: Radius.circular(50))),
+    builder: (BuildContext context) {
+      return ForgotPassword(); // You should create a ForgotPasswordBottomSheet widget
+    },
+  );
+}
+
   @override
   void initState() {
     _loadSavedUser();
     _loadUserCount();
-    /* autoLogin(); */
+    isChecked?autoLogin():null;
     isCheckedVisiblePassword=true;
     super.initState();
   }
@@ -276,11 +292,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             });
                           },
                         ),
-                          Text("Lưu đăng nhặp",style: TextStyle(fontSize: 18.0),
-                          ),
+                          Text("Lưu đăng nhặp",style: TextStyle(fontSize: 18.0),),
                         ],
                       ),
                     ),
+
                 FadeInUp(delay: const Duration(milliseconds: 500),duration: const Duration(seconds: 1),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center,children: [
                   Expanded(child:

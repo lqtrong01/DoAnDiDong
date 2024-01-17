@@ -97,6 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
 
         await _databaseReference.child('users').child('$userCount').child('detail').set({
+          'avatar': "",
           'name': username,
           'phone': phone,
           'email': email,
@@ -265,5 +266,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     txt_email.clear();
     txt_password.clear();
     isEmailValid=false;
+    isPhoneValid=false;
   }
 }

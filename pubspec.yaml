@@ -72,6 +72,8 @@ flutter:
   assets:
    - assets/img/dangky.jpg
    - assets/img/dangnhap.jpg
+   - assets/img/bg.jpg
+   - assets/img/tomato.jpg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

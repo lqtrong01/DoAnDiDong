@@ -141,16 +141,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-  /* Future<bool> _isExistingUser(String userID) async{
-    try{
-      User? firebaseUser = await _auth.currentUser;
-      return firebaseUser !=null && firebaseUser.uid==userID;
-    }catch(e){
-      print("Error checkinh existing user: $e");
-      return false;
-    }
-  } */
-
   Future<void> _createEmailPasswordAccount(String email, String password)async{
     try{
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
@@ -170,11 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      print(userCredential.user!.displayName);
-      print(userCredential.user!.email);
-      print(userCredential.user!.photoURL);
-      print(userCredential.user!.phoneNumber);
-      print(userCredential.user!);
+
       final User? firebaseUser=userCredential.user;
       if(firebaseUser!=null){
         bool isExisting = await _isExistingUser(firebaseUser.email!);
@@ -185,8 +171,14 @@ class _LoginScreenState extends State<LoginScreen> {
               String avatar = userCredential.user!.photoURL??"";
               String phone = userCredential.user!.phoneNumber??"";
               String _email = userCredential.user!.email??"";
-              print(userId+" "+name+" "+avatar+" "+phone+" "+_email);
-              print("B2: Lưu TTCT vào FBRD");
+
+              await _databaseReference.child('users').child('$userCount').set({
+                'categoryCount': 0,
+                'orderCount': 0,
+                'notificationCount':0,
+                'favouriteCount':0,
+              });
+              
               await _databaseReference.child('users').child('$userCount').child('detail').set({
                 'avatar': avatar,
                 'name': name,
@@ -194,10 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 'email': _email,
                 'location':"",
                 'password': "defaultPassword",
-                'token': userCount.toString(),
+                'token': userCount,
                 'userID': userId,
-                'categoryCount': 0,
-                'orderCount': 0,
               });
               showSnackbar('Tạo tài khoản bằng Google thành công');
               userCount++;

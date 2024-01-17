@@ -60,35 +60,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Future<bool> _isExistingUser(String email) async {
+    try {
+      // Lấy dữ liệu từ Firebase Realtime Database
+      DatabaseEvent event = await _databaseReference.child('users').orderByChild('detail/email').equalTo(email).once();
+      DataSnapshot? dataSnapshot = event.snapshot;
+
+      // Kiểm tra sự tồn tại của dữ liệu
+      return dataSnapshot != null && dataSnapshot.value != null;
+    } catch (e) {
+      print("Error checking existing user: $e");
+      return false;
+    }
+  }
+
   void addNewUser() async {
     String username = txt_username.text;
     String phone = txt_phone.text;
     String email = txt_email.text;
     String password = txt_password.text;
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    bool isExisting = await _isExistingUser(email);
+    if(!isExisting){
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      String userId = userCredential.user!.uid;
+        String userId = userCredential.user!.uid;
 
-      await _databaseReference.child('users').child('$userCount').child('detail').set({
-        'name': username,
-        'phone': phone,
-        'email': email,
-        'location':"",
-        'password': password,
-        'token': userCount.toString(),
-        'userID': userId,
-        'categoryCount': 0,
-        'orderCount': 0,
-      });
-      showSnackbar('Tạo tài khoản thành công');
-      userCount++;
-      await _databaseReference.update({'userCount': userCount,});
-    } catch (error) {
-      showSnackbar('Tạo tài khoản thất bại');
+        await _databaseReference.child('users').child('$userCount').set({
+          'categoryCount': 0,
+          'orderCount': 0,
+          'notificationCount':0,
+          'favouriteCount':0,
+        });
+
+        await _databaseReference.child('users').child('$userCount').child('detail').set({
+          'name': username,
+          'phone': phone,
+          'email': email,
+          'location':"",
+          'password': password,
+          'token': userCount,
+          'userID': userId,
+        });
+        showSnackbar('Tạo tài khoản thành công');
+        userCount++;
+        await _databaseReference.update({'userCount': userCount,});
+      } catch (error) {
+        showSnackbar('Tạo tài khoản thất bại');
+      }
+    }else{
+      showSnackbar("Email đã tồn tại");
     }
   }
 
@@ -182,7 +206,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           setState(() {
                             
                           });
-                        }, icon: isCheckedVisiblePassword?Icon(Icons.password):Icon(Icons.remove_red_eye)),
+                        }, icon: isCheckedVisiblePassword?Icon(Icons.visibility_off):Icon(Icons.visibility)),
                       ),
                     ),
                   ),

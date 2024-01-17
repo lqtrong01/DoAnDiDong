@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "929465734435",
+    "firebase_url": "https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "app-thuong-mai-ndtt",
+    "storage_bucket": "app-thuong-mai-ndtt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929465734435:android:804ea95e09615d9253e896",
+        "android_client_info": {
+          "package_name": "com.example.app_thuong_mai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "929465734435-a609q69s9u2a4c394m3e01rd9gab9cas.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpdJ3rfksl7i7ZO2JXdQ0w0ut2zRukCA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "929465734435-a609q69s9u2a4c394m3e01rd9gab9cas.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "929465734435-mmo530il0n2fut290i13k382s1o5q6kc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.smartHome"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929465734435:android:1ffb849cc1ee6db153e896",
+        "android_client_info": {
+          "package_name": "com.example.smart_home"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "929465734435-a609q69s9u2a4c394m3e01rd9gab9cas.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpdJ3rfksl7i7ZO2JXdQ0w0ut2zRukCA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "929465734435-a609q69s9u2a4c394m3e01rd9gab9cas.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "929465734435-mmo530il0n2fut290i13k382s1o5q6kc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.smartHome"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

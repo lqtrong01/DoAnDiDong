@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:app_thuong_mai/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -24,7 +23,7 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
   ).reference();
   int notiCount=0;
   List<Map<dynamic,dynamic>> user_cat = [];
-  List<dynamic> lst_notification = [];
+  List<dynamic?> lst_notification = [];
 
   Future<void> _fetchData() async {
     try {
@@ -43,7 +42,7 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
         }catch(e){
           print('error'+e.toString());
         }
-        // print(user.length);
+         print(lst_notification);
         // print(lst_order);
         // print(lst_order.length);
         setState(() {
@@ -73,24 +72,24 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
       print(error.toString());
     }
   }
-  void _resetFormData() {
-    _databaseReference.child('users').child(widget.userToken.toString()).child('notifications').onValue.listen((event) {
-      _handleDataChange(event.snapshot);
-    });
-  }
+  // void _resetFormData() {
+  //   _databaseReference.child('users').child(widget.userToken.toString()).child('notifications').onValue.listen((event) {
+  //     _handleDataChange(event.snapshot);
+  //   });
+  // }
 
-  void _handleDataChange(DataSnapshot snapshot) {
-    try {
-      if (snapshot != null && snapshot.value != null) {
-        List<dynamic> notifications = snapshot.value as List;
-        setState(() {
-          lst_notification = notifications;
-        });
-      }
-    } catch (error) {
-      print("Lỗi khi xử lý thay đổi dữ liệu: $error");
-    }
-  }
+  // void _handleDataChange(DataSnapshot snapshot) {
+  //   try {
+  //     if (snapshot != null && snapshot.value != null) {
+  //       List<dynamic> notifications = snapshot.value as List;
+  //       setState(() {
+  //         lst_notification = notifications;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     print("Lỗi khi xử lý thay đổi dữ liệu: $error");
+  //   }
+  // }
   
   String titleOrder = '';
 
@@ -98,8 +97,8 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
   void initState() {
     _fetchData();
     super.initState();
-    ThongbaoMua(userToken: 0);
-    _resetFormData();
+    //ThongbaoMua(userToken: 0);
+   // _resetFormData();
     
   }
   @override
@@ -137,16 +136,21 @@ Widget build(BuildContext context) {
           itemCount: lst_notification.length,
           itemBuilder: (context, index) {
             try{
-            final item = lst_notification[index];
+            var item = lst_notification[index];
             if (user_cat[widget.userToken]['notifications'][index]['status'] == true) {
               titleOrder = '${user_cat[widget.userToken]['notifications'][index]['title']} ${user_cat[widget.userToken]['orders'][index]['name']}';
               return Dismissible(
                 key: Key(item.toString()),
                 onDismissed: (direction) {
                   setState(() {
-                    lst_notification.removeAt(index);
-                    ThongbaoMua(userToken: 0);
+                     //lst_notification.removeAt(index);
+                     lst_notification.remove(index);
+                   _fetchData();
+             
+                
                     editUser(index); // Gọi phương thức update
+                       print(lst_notification);
+                lst_notification.toSet();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Đơn hàng đã được xóa')),

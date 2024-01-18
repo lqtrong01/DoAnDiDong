@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'thongbao.dart';
+import 'package:app_thuong_mai/thanhtoan/order_pay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
       ),
       routes:{
         '/':(context) => MyHomePage(),
-        '/not':(context)=>ThongbaoMua(userToken: 0),
+        '/not':(context)=>CartScreen(userToken: 0),
       },
       initialRoute: '/',
     );

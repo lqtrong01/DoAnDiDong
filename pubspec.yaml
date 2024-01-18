@@ -44,6 +44,13 @@ dependencies:
   carousel_slider: ^4.2.1
   introduction_slider: ^2.0.1
   flutter_rating_bar: ^4.0.1
+  sign_in_button: ^3.2.0
+  shared_preferences: ^2.2.2
+  image_picker: ^1.0.4
+  file_picker: ^5.3.1
+  animate_do: ^3.0.2
+  flutter_spinkit: ^5.2.0
+  image_cropper: ^4.0.1
 
 dev_dependencies:
   flutter_test:
@@ -69,7 +76,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/image/
+    - assets/img/
     - assets/icons/
   # assets:
   #   - images/a_dot_burr.jpeg
@@ -86,6 +93,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: Newsreader
+      fonts: 
+        - asset: assets/fonts/Newsreader-VariableFont_opsz,wght.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:

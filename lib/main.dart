@@ -6,8 +6,10 @@ import 'home_page.dart';
 import 'thongbao.dart';
 import 'package:app_thuong_mai/thanhtoan/order_pay.dart';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+   Notificationmanerger().initNotification();//khởi tạo thông báo
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -35,8 +37,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       routes:{
-        '/':(context) => MyHomePage(),
-        '/not':(context)=>CartScreen(userToken: 0),
+        '/':(context) => HomePage(),
+        
       },
       initialRoute: '/',
     );

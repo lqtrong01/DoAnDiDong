@@ -34,7 +34,7 @@ onDidReceiveNotificationResponse: (details) {
     );
 
     NotificationDetails notificationDetails=NotificationDetails(android: androidNotificationDetails);
-    await notificationPlusin.show(0, "Chúc mùng bạn vừa thanh toán đơn hàng ", '1Kg táo đỏ', notificationDetails);
+    await notificationPlusin.show(0, "Chúc mùng bạn vừa thanh toán đơn hàng ", 'Chúng tôi sẽ liên hệ bạn sớm nhất', notificationDetails);
   }
   
 

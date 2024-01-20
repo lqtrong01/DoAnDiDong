@@ -15,14 +15,13 @@ class ThongbaoMua extends StatefulWidget {
 
 class _ThongbaoMuaState extends State<ThongbaoMua> {
   TextEditingController status = TextEditingController();
-
-final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
-  int notiCount=0;
-  List<Map<dynamic,dynamic>> user_cat = [];
+  int notiCount = 0;
+  List<Map<dynamic, dynamic>> user_cat = [];
   List<dynamic?> lst_notification = [];
 
   Future<void> _fetchData() async {
@@ -35,19 +34,14 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
         data.forEach((value) {
           user_cat.add(value);
         });
-        try{
+        try {
           for (var value in user_cat[widget.userToken]['notifications']) {
             lst_notification.add(value);
           }
-        }catch(e){
-          print('error'+e.toString());
+        } catch (e) {
+          print('error' + e.toString());
         }
-         print(lst_notification);
-        // print(lst_order);
-        // print(lst_order.length);
-        setState(() {
-          
-        }); // Trigger a rebuild with the fetched data
+        setState(() {});
       }
     } catch (error) {
       print("Error fetching data: $error");
@@ -61,116 +55,90 @@ final FirebaseAuth _auth = FirebaseAuth.instance;
       ),
     );
   }
-  var so=0;
-    void editUser(int index) async {
+
+  void editUser(int index) async {
     try {
-        await _databaseReference.child('users/${0}').child('notifications/${index}').update({
-          'status': false,
-        });
-      
+      await _databaseReference.child('users/${0}').child('notifications/${index}').update({
+        'status': false,
+      });
     } catch (error) {
       print(error.toString());
     }
   }
-  // void _resetFormData() {
-  //   _databaseReference.child('users').child(widget.userToken.toString()).child('notifications').onValue.listen((event) {
-  //     _handleDataChange(event.snapshot);
-  //   });
-  // }
 
-  // void _handleDataChange(DataSnapshot snapshot) {
-  //   try {
-  //     if (snapshot != null && snapshot.value != null) {
-  //       List<dynamic> notifications = snapshot.value as List;
-  //       setState(() {
-  //         lst_notification = notifications;
-  //       });
-  //     }
-  //   } catch (error) {
-  //     print("Lỗi khi xử lý thay đổi dữ liệu: $error");
-  //   }
-  // }
-  
   String titleOrder = '';
 
   @override
   void initState() {
     _fetchData();
     super.initState();
-    //ThongbaoMua(userToken: 0);
-   // _resetFormData();
-    
   }
+
   @override
-Widget build(BuildContext context) {
-  // Kiểm tra xem tất cả các thông báo có trạng thái là false không
-  bool allNotificationsFalse = user_cat.isNotEmpty &&
-    user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
+  Widget build(BuildContext context) {
+    // Kiểm tra xem tất cả các thông báo có trạng thái là false không
+    bool allNotificationsFalse = user_cat.isNotEmpty &&
+        user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
+    bool ktra;
 
-  return Scaffold(
-    appBar: AppBar(
-      title: Text('Thông báo', style: TextStyle(color: Colors.black)),
-    ),
-    body: allNotificationsFalse
-      ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children:[
-              Icon(Icons.notifications, size: 50, color: Colors.yellow),
-              SizedBox(height: 30,),
-              Text('Không có thông báo', style: TextStyle(color: Colors.green, fontSize: 20)),
-              SizedBox(height: 10,),
-              ElevatedButton(
-                onPressed: () {
-
-                   Navigator.push(context,MaterialPageRoute(builder: (context) => MyHomePage()));
-                },
-                child: Text('Quay về Trang Chủ'),
-                style: ElevatedButton.styleFrom(primary: Colors.green),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Thông báo', style: TextStyle(color: Colors.black)),
+      ),
+      body: allNotificationsFalse
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.notifications, size: 50, color: Colors.yellow),
+                  SizedBox(height: 30,),
+                  Text('Không có thông báo', style: TextStyle(color: Colors.green, fontSize: 20)),
+                  SizedBox(height: 10,),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyHomePage()));
+                    },
+                    child: Text('Quay về Trang Chủ'),
+                    style: ElevatedButton.styleFrom(primary: Colors.green),
+                  ),
+                ],
               ),
-            ],
-          ),
-        )
-      : ListView.builder(
-          physics: AlwaysScrollableScrollPhysics(),
-          itemCount: lst_notification.length,
-          itemBuilder: (context, index) {
-            try{
-            var item = lst_notification[index];
-            if (user_cat[widget.userToken]['notifications'][index]['status'] == true) {
-              titleOrder = '${user_cat[widget.userToken]['notifications'][index]['title']} ${user_cat[widget.userToken]['orders'][index]['name']}';
-              return Dismissible(
-                key: Key(item.toString()),
-                onDismissed: (direction) {
-                  setState(() {
-                     //lst_notification.removeAt(index);
-                     lst_notification.remove(index);
-                   _fetchData();
-             
-                
-                    editUser(index); // Gọi phương thức update
-                       print(lst_notification);
-                lst_notification.toSet();
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Đơn hàng đã được xóa')),
-                  );
-                },
-                background: Container(color: Colors.red),
-                child: NotificationItem(title: titleOrder),
-              );
-            } else {
-              return Container(); // Không hiển thị thông báo có trạng thái false
-            }
-            }
-             catch (error) {
-      print("Lỗi khi xử lý thay đổi dữ liệu: $error");
-             }
-            
-          },
-
-        ),
-  );
-}
-
+            )
+          : ListView.builder(
+              physics: AlwaysScrollableScrollPhysics(),
+              itemCount: lst_notification.length,
+              itemBuilder: (context, index) {
+                try {
+                  var item = lst_notification[index];
+                  if (user_cat[widget.userToken]['notifications'][index]['status'] == true) {
+                    titleOrder = '${user_cat[widget.userToken]['notifications'][index]['title']}';
+                    return Dismissible(
+                      key: Key(item.toString()),
+                      onDismissed: (direction) {
+                        setState(() {
+                          lst_notification.removeAt(index);
+                          editUser(index);
+                          print(lst_notification);
+                          item.removeAt(index);
+                          ktra = user_cat.isNotEmpty &&
+                              user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Đơn hàng đã được xóa')),
+                        );
+                      },
+                      background: Container(color: Colors.red),
+                      child: NotificationItem(title: titleOrder),
+                    );
+                  } else {
+                    return Container(); // Không hiển thị thông báo có trạng thái false
+                  }
+                } catch (error) {
+                  print("Lỗi khi xử lý thay đổi dữ liệu: $error");
+                  return Container(); // Xử lý lỗi bằng cách trả về một container trống hoặc một widget thay thế
+                }
+              },
+            ),
+    );
   }
+}

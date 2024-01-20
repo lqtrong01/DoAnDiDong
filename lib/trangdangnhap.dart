@@ -2,6 +2,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:app_thuong_mai/forgotpassword.dart';
 import 'package:app_thuong_mai/loadingscreen.dart';
+import 'package:app_thuong_mai/trangdangxuat.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -31,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   int userCount = 0;
   bool isCheckedVisiblePassword = true;
-  bool isChecked = false;
+  bool isChecked = true;
   bool isLoading = false;
   bool isClosing = false;
 
@@ -63,6 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _resetsaveUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('savedEmail');
+    prefs.remove('savedPassword');
+    prefs.remove('saveUser');
+  }
+
   void autoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedEmail = prefs.getString('savedEmail');
@@ -85,9 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
           showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
           Navigator.popUntil(context, (route) => route.isFirst);
           Navigator.pushNamed(context, '/logout');
-        } else {
-          // Xử lý lỗi đăng nhập
-          showSnackbar("Đăng nhập thất bại");
         }
       });
     }
@@ -145,13 +150,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-  Future<void> _createEmailPasswordAccount(String email, String password)async{
+  /* Future<void> _createEmailPasswordAccount(String email, String password)async{
     try{
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
     }catch(e){
       print("Error creating email/password account: $e");
     }
-  }
+  } */
+
   Future<UserCredential?> _signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
@@ -165,9 +171,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
 
-      final User? firebaseUser=userCredential.user;
-      if(firebaseUser!=null){
-        bool isExisting = await _isExistingUser(firebaseUser.email!);
+      /* final User? firebaseUser=userCredential.user; */
+      if(userCredential.user != null){
+        bool isExisting = await _isExistingUser(userCredential.user!.email!);
         if(!isExisting){
             try{
               String userId = userCredential.user!.uid;
@@ -209,28 +215,29 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showForgotPasswordBottomSheet() {
-  showModalBottomSheet(
-    context: context,
-    
-    shape: RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.vertical(top: Radius.circular(50))),
-    builder: (BuildContext context) {
-      return ForgotPassword(); // You should create a ForgotPasswordBottomSheet widget
-    },
-  );
+      showModalBottomSheet(
+        context: context, 
+        shape: RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.vertical(top: Radius.circular(50))),
+        builder: (BuildContext context) {
+          return ForgotPassword(); 
+        },
+      );
 }
 
   @override
   void initState() {
     _loadSavedUser();
     _loadUserCount();
-    isChecked?autoLogin():null;
+    /* isChecked?autoLogin():null; */
     isCheckedVisiblePassword=true;
     super.initState();
   }
   @override
   Widget build(BuildContext context) => isLoading
-      ? LoadingScreen()
-      : Scaffold(
+    ? LoadingScreen() : _LoginScreen();
+
+  Widget _LoginScreen(){
+    return Scaffold(
       body: SingleChildScrollView(child: Column(
         children: [
           Stack(children: [
@@ -288,7 +295,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           Checkbox(value: isChecked, onChanged: (value) {
                             setState(() {
                               isChecked=value!;
-                              _saveUser();
                             });
                           },
                         ),
@@ -296,7 +302,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-
                 FadeInUp(delay: const Duration(milliseconds: 500),duration: const Duration(seconds: 1),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center,children: [
                   Expanded(child:
@@ -317,6 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                           // Đăng nhập thành công, bạn có thể thực hiện các hành động sau đăng nhập ở đây
                           showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
+                          isChecked?_saveUser():_resetsaveUser();
                           Navigator.popUntil(context, (route) => route.isFirst);
                           Navigator.pushNamed(context, '/logout');
                           /* Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(),)), */
@@ -361,6 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
           )
         ],
       ),));
+  }
 
   Widget _googleSignInButton(){
     return Center(child: SizedBox(
@@ -375,6 +382,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Navigator.popUntil(context, (route) => route.isFirst);
               Navigator.pushNamed(context, '/logout');
             });
+            showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
           }else{
             showSnackbar("Đăng nhập bằng Google thất bại");
           }

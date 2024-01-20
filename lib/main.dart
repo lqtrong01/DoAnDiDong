@@ -1,5 +1,6 @@
 import 'package:app_thuong_mai/firebase_options.dart';
-import 'package:app_thuong_mai/google_sign_in.dart';
+import 'package:app_thuong_mai/forgotpassword.dart';
+import 'package:app_thuong_mai/logoscreen.dart';
 import 'package:app_thuong_mai/trangdangky.dart';
 import 'package:app_thuong_mai/trangdangnhap.dart';
 import 'package:app_thuong_mai/trangdangxuat.dart';
@@ -30,7 +31,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/':(context) => const LoginScreen(),
+        '/':(context) => const LogoScreen(),
+        '/login':(context) => const LoginScreen(),
         '/register':(context) => const RegisterScreen(),
         '/logout':(context) => const LogoutScreen(),
       }

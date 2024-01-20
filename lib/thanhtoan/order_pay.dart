@@ -1,4 +1,5 @@
 
+import 'package:app_thuong_mai/loading/loading.dart';
 import 'package:app_thuong_mai/main.dart';
 import 'package:app_thuong_mai/thanhtoan/ordername.dart';
 import 'package:app_thuong_mai/thanhtoan/order_pay_item.dart';
@@ -168,7 +169,8 @@ class _CartScreenState extends State<CartScreen> {
                 addNewOrder();
                 setCategory();
                 addNotication();
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>MyHomePage()));
+    
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>SplashScreen()));
                 Notificationmanerger().clickshow();
               },
               child: Text("Thanh Toán"),

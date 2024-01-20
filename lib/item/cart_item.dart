@@ -1,13 +1,8 @@
-import 'dart:js';
+import 'package:app_thuong_mai/screen/cart_screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-class CartItem extends StatelessWidget {
-
-    final DatabaseReference _databaseReference = FirebaseDatabase(
-    databaseURL:
-        'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
-  ).reference();
+class CartItem extends StatefulWidget {
 
   int userToken;
   final String path;
@@ -30,14 +25,26 @@ class CartItem extends StatelessWidget {
     required this.idx,
   }) : super(key: key);
 
+  @override
+  State<CartItem> createState() => _CartItemState();
+}
+
+class _CartItemState extends State<CartItem> {
+    final DatabaseReference _databaseReference = FirebaseDatabase(
+    databaseURL:
+        'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
+  ).reference();
+  
+  static get quantity => null;
+
   void updateStatus() async {
     try{
-      await _databaseReference.child('users/${userToken}').child('cats/${idx}').update({
+      await _databaseReference.child('users/${widget.userToken}').child('cats/${widget.idx}').update({
         'status':false,
       });
     }
     catch(e){
-
+      e.toString();
     }
   }
 
@@ -60,6 +67,7 @@ class CartItem extends StatelessWidget {
               onPressed: () {
                 updateStatus();
                 Navigator.pop(context);
+                (context as Element).reassemble();
               },
               child: Text('Xóa'),
             ),
@@ -85,7 +93,7 @@ class CartItem extends StatelessWidget {
             Column(
               children: [
                 Image.network(
-                  path,
+                  widget.path,
                   height: 60.0,
                   width: 60.0,
                   fit: BoxFit.contain,
@@ -99,18 +107,17 @@ class CartItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20
+                    widget.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 20.0
                     ),
                   ),
 
                   Text(
-                    origin,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20
+                    widget.origin,
+                    style: const TextStyle(
+                      fontSize: 16.0
                     ),
                   ),
 
@@ -120,18 +127,29 @@ class CartItem extends StatelessWidget {
                       border: Border.all(color: Color.fromRGBO(0, 0, 0, 1),width: 0.1),
                       borderRadius: BorderRadius.circular(100),
                     ),child: IconButton(onPressed: () {
+                      int.parse(widget.quantity.toString()) + 1;
+                    }, icon: const Icon(Icons.remove)),),
 
-                    }, icon: Icon(Icons.remove)),),
+                    const SizedBox(width: 5.0,),
 
-                    SizedBox(width: 5.0,),
-                    Text(quantity.toString()),
-                    SizedBox(width: 5.0,),
+                    Text(
+                      widget.quantity.toString(), 
+                      style: const TextStyle(fontSize: 18),
+                    ),
 
-                    Container(decoration: BoxDecoration(
-                      border: Border.all(color: Color.fromRGBO(0, 0, 0, 1),width: 0.1),
-                      borderRadius: BorderRadius.circular(100)),child: IconButton(onPressed: () {
+                    const SizedBox(width: 5.0,),
 
-                    }, icon: Icon(Icons.add)),),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Color.fromRGBO(0, 0, 0, 1),
+                        width: 0.1
+                      ),
+                      borderRadius: BorderRadius.circular(100)),
+                      child: IconButton(
+                        onPressed: () {
+                          int.parse(widget.quantity.toString()) - 1;
+                    }, icon: const Icon(Icons.add)),),
                   ],)
                 ],
               ),
@@ -145,17 +163,23 @@ class CartItem extends StatelessWidget {
                   padding: EdgeInsets.fromLTRB(50.0, 0, 0, 40.0),
                   child: IconButton(
                     onPressed: (){
-                      deleteProduct(context);
+                      setState(() {
+                        deleteProduct(context);
+                        CartScreen(userToken: 0);
+                      });
                     }, 
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.close
                     )
                   ),
                 ),
                 
                 Text(
-                  price.toString(),
-                  style: TextStyle(fontSize: 20),
+                  widget.price.toString(),
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w500
+                  ),
                 ),
               ],
             )
@@ -163,5 +187,10 @@ class CartItem extends StatelessWidget {
         )
       ),
     );
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
   }
 }

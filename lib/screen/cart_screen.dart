@@ -17,8 +17,16 @@ class _CartScreenState extends State<CartScreen> {
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
 
+  bool ischeck = false;
+  
+  //Danh sách người dùng
   List<Map<dynamic, dynamic>> user = [];
+
+  //Danh sách giỏ hàng
   List<dynamic> lst_cat = [];
+
+  //Danh sách lưu trữ thanh toán
+  List<Map<dynamic, dynamic>> lst_pay = [];
 
   @override
   void initState() {
@@ -48,116 +56,98 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
-  void tinhTien(){
-    
-  }
-
-  // Thanh toán giỏ hàng
-  void payNow(){
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Xác Nhận Thanh Toán"),
-          content: Text("Bạn muốn thanh toán không?"),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); 
-              },
-              child: Text("Hủy"),
-            ),
-            TextButton(
-              onPressed: () {
-
-                Navigator.of(context).pop();
-              },
-              child: Text("Thanh Toán"),
-            ),
-          ],
-        );
-      },
-    );
+  void checkStatus() async {
+    try {
+      for(int i = 0; i < lst_cat.length; i++){
+        if(lst_cat[i]['status'] == true){
+          ischeck = true;
+          lst_pay.add(lst_cat[i]);
+        }
+      }
+    }
+    catch(e){
+      e.toString();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // body: ListView(
-      //   padding: const EdgeInsets.all(25.0),
-      //   children :[ user.isNotEmpty
-      //     ? PaddingCart()
-      //     : const Center(child: Text('Không có sản phẩm trong giỏ hàng'))
-      //   ]
 
       body: Padding(
         padding: const EdgeInsets.all(25.0),
         child: Column(
           children: [
             
-            // Heading
+            const SizedBox(height: 8.0,),
+
             const Text(
               'Giỏ hàng',
               style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1), fontSize: 30),
-              
             ),
 
             Expanded(
               child: SizedBox(
-                  height: 144.0, 
-                  child: ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    scrollDirection: Axis.vertical,
-                    itemCount: lst_cat.length,
-                    itemBuilder: (context, index) {
-                      try{
-                        if(user[widget.userToken]['cats'][index]['status'])
-                        {
-                          return CartItem(
-                            path: user[widget.userToken]['cats'][index]['path']??'',
-                            name: user[widget.userToken]['cats'][index]['name']??'',
-                            price: user[widget.userToken]['cats'][index]['price']??'',
-                            origin: user[widget.userToken]['cats'][index]['origin']??'',
-                            quantity: user[widget.userToken]['cats'][index]['quantity'],
-                            status: user[widget.userToken]['cats'][index]['status'],
-                            userToken: 0,
-                            idx: user[widget.userToken]['cats'][index]['cat_token'],
-                          );
-
-                        }
-                        else
-                        { 
-                          return SizedBox();
-                        }
-                      }
-                      catch(e)
+                height: 144.0, 
+                child: 
+                ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  itemCount: lst_cat.length,
+                  itemBuilder: (context, index) {
+                    try{
+                      if(user[widget.userToken]['cats'][index]['status'])
                       {
-                        print(e.toString());
+                        return CartItem(
+                          path: user[widget.userToken]['cats'][index]['path']??'',
+                          name: user[widget.userToken]['cats'][index]['name']??'',
+                          price: user[widget.userToken]['cats'][index]['price']??'',
+                          origin: user[widget.userToken]['cats'][index]['origin']??'',
+                          quantity: user[widget.userToken]['cats'][index]['quantity'],
+                          status: user[widget.userToken]['cats'][index]['status'],
+                          userToken: 0,
+                          idx: user[widget.userToken]['cats'][index]['cat_token'],
+                        );
                       }
-                    },
-                  ),
-                ),
+                      else
+                      { 
+                        return const SizedBox();
+                      }
+                    }
+                    catch(e)
+                    {
+                      e.toString();
+                    }
+                  },
+                )
+              ),
             ),
 
-            GestureDetector(
-              onTap: payNow,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Color.fromRGBO(87, 175, 115, 1),
-                  borderRadius: BorderRadius.circular(12)
-                ),
-                child: const Center(
-                  child: Text(
-                    "Thanh Toán",
-                    style: TextStyle(color: Color.fromRGBO(255, 255, 255, 1), fontSize: 20),
+            Container(
+              height: 50.0,
+              width: 150.0,
+              child: Center(
+                child: ElevatedButton(
+                  style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll(
+                      Color.fromRGBO(87, 175, 115, 1)
+                    )
                   ),
+                  onPressed: (){
+                    checkStatus();
+                  }, 
+                  child: const Text(
+                    'Thanh Toán',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18.0
+                    ),
+                  )
                 ),
               ),
             )
           ],
-        ),
+        ) 
       ),
       bottomNavigationBar: const BotNav(idx: 1),
     );

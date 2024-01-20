@@ -1,8 +1,8 @@
-import 'dart:html';
 
 import 'package:app_thuong_mai/main.dart';
-import 'package:app_thuong_mai/thanhtoan/order_name.dart';
+import 'package:app_thuong_mai/thanhtoan/ordername.dart';
 import 'package:app_thuong_mai/thanhtoan/order_pay_item.dart';
+import 'package:app_thuong_mai/thongbao.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +16,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
         String dropdownValue = 'Thanh toán khi nhận hàng';
+        String date="";
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
@@ -33,8 +34,8 @@ class _CartScreenState extends State<CartScreen> {
     _fetchData();
     _fetchDataname();
     _loadOrderCount();
+    date = DateTime.now().toString();
   }
-
   Future<void> _fetchData() async {
     try {
       DatabaseEvent event = await _databaseReference.once();
@@ -77,13 +78,7 @@ class _CartScreenState extends State<CartScreen> {
       print("Lỗi name: $error");
     }
   }
-
-  void tinhTien(){
-    String thanhtien;
-      
-
-  }
-
+ 
   int orderNumber = 0;
   int notificationNumber = 0;
   Future<void> _loadOrderCount() async {
@@ -129,6 +124,7 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+
   Future<void> addNewOrder() async {
     try {
       for(int i = 0; i<lst_order.length;i++){
@@ -137,7 +133,10 @@ class _CartScreenState extends State<CartScreen> {
           'origin': lst_order[i]['origin'],
           'path': lst_order[i]['path'],
           'price': lst_order[i]['price'],
-          'quantity': lst_order[i]['quantity']
+          'quantity': lst_order[i]['quantity'],
+          'Pay': '$dropdownValue',
+          'total': '${calculateTotalAmount().toStringAsFixed(2)}',
+           'ddmmyy': '$date',
         });
       }
       orderNumber++;
@@ -170,6 +169,7 @@ class _CartScreenState extends State<CartScreen> {
                 setCategory();
                 addNotication();
                 Navigator.push(context, MaterialPageRoute(builder: (context)=>MyHomePage()));
+                Notificationmanerger().clickshow();
               },
               child: Text("Thanh Toán"),
             ),

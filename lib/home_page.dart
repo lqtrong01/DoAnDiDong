@@ -1,3 +1,5 @@
+import 'package:app_thuong_mai/screennotification/notificationscreen.dart';
+import 'package:app_thuong_mai/thanhtoan/order_pay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
@@ -19,8 +21,15 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomButtom(onPressed: (){
-            Notificationmanerger().clickshow();
-          }, title: "Click")
+            // Notificationmanerger().clickshow();
+            Navigator.push(context,MaterialPageRoute(builder: (context) => CartScreen(userToken: 0)));
+          }, title: "Click"),
+          SizedBox(height: 10,),
+             CustomButtom(onPressed: (){
+            // Notificationmanerger().clickshow();
+            Navigator.push(context,MaterialPageRoute(builder: (context) => ThongbaoMua(userToken: 0)));
+          }, title: "Clicks")
+    
     
         ],
       )

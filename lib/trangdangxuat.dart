@@ -50,7 +50,7 @@ class _LogoutScreenState extends State<LogoutScreen> {
               _handleSignOut();
             });
             await Future.delayed(const Duration(seconds: 2));
-            setState(() {
+            setState(() async {
               isLoading=false;
               /* SharedPreferences pref = await SharedPreferences.getInstance();
               await pref.remove('saveFirstUse'); */

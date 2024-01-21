@@ -1,5 +1,3 @@
-
-
 import 'dart:io';
 import 'package:app_thuong_mai/widgets/form_container_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,48 +23,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   TextEditingController phone = TextEditingController();
   TextEditingController password = TextEditingController();
   TextEditingController location = TextEditingController();
-  String image_url = '';
+  String imageUrl = '';
+  String userID = '';
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
+  FirebaseAuth _auth = FirebaseAuth.instance;
 
-  late String imageUrl;
   PlatformFile? pickerFile;
   UploadTask? uploadTask;
+  List<Map<dynamic, dynamic>> user = [];
 
   @override
   void initState() {
     super.initState();
     _fetchData();
-    imageUrl = '';
   }
 
   Future<void> _fetchData() async {
     try {
-      User? user = FirebaseAuth.instance.currentUser;
+      DatabaseEvent event = await _databaseReference.once();
+      DataSnapshot? dataSnapshot = event.snapshot;
 
-      if (user != null) {
-        DatabaseEvent event = await _databaseReference
-            .child('users')
-            .orderByChild('detail/email')
-            .equalTo('abc@gmail.com')
-            .once();
-        DataSnapshot? dataSnapshot = event.snapshot;
-
-        if (dataSnapshot != null && dataSnapshot.value != null) {
-          // List<dynamic> userData = (dataSnapshot.value)!.values.first;
-          List<dynamic> userData = dataSnapshot.value as List;
-          setState(() {
-            name.text = userData[widget.userToken]['detail']['name']??'';
-            email.text = userData[widget.userToken]['detail']['email']??'';
-            password.text = userData[widget.userToken]['detail']['password']??'';
-            location.text = userData[widget.userToken]['detail']['location']??'';
-            phone.text = userData[widget.userToken]['detail']['phone']??'';
-          });
-          print(userData);
-        }
-        
+      if (dataSnapshot != null && dataSnapshot.value != null) {
+        List<dynamic> data = (dataSnapshot.value as Map)['users'];
+        data.forEach((value) {
+          user.add(value);
+        });
+        setState(() {
+          name.text = user[widget.userToken]['detail']['name'];
+          email.text = user[widget.userToken]['detail']['email'];
+          location.text = user[widget.userToken]['detail']['location'];
+          imageUrl = user[widget.userToken]['detail']['avatar']??'';
+          phone.text = user[widget.userToken]['detail']['phone'];
+          userID = user[widget.userToken]['detail']['userID'];
+          password.text = user[widget.userToken]['detail']['password'].toString();
+        }); // Trigger a rebuild with the fetched data
       }
     } catch (error) {
       print("Error fetching data: $error");
@@ -97,62 +90,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() {
       uploadTask = null;
     });
-    buildProgress();
   }
 
   void editUser() async {
     try {
       if(name.text.isNotEmpty&&email.text.isNotEmpty&&phone.text.isNotEmpty&&location.text.isNotEmpty&&password.text.isNotEmpty){
-        await _databaseReference.child('users/${0}').child('detail').set({
+        await _databaseReference.child('users/${widget.userToken}').child('detail').update({
           'name': name.text.toString(),
           'email': email.text.toString(),
           'phone': phone.text.toString(),
           'location': location.text.toString(), 
           'password': password.text.toString(),
-          'avt_path': imageUrl,
+          'avatar': imageUrl??'',
+          'token': widget.userToken
         });
-        await _databaseReference.child('users/${0}').set({
-          'categoryCount': 0,
-        });
-       
       }
-      else { }
-      
+      else { 
+        showSnackbar('Cập nhật thông tin không thành công');
+      }
     } catch (error) {
       print(error.toString());
     }
   }
 
-  Widget buildProgress() => StreamBuilder<TaskSnapshot>(
-    stream: uploadTask?.snapshotEvents,
-    builder: (context, snapshot) {
-      if(snapshot.hasData){
-        final data = snapshot.data!;
-        double progress = data.bytesTransferred / data.totalBytes;
-        return SizedBox(
-          height: 50,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              LinearProgressIndicator(
-                value: progress,
-                backgroundColor: Colors.green,
-              ),
-              Center(
-                child: Text(
-                  '${(100*progress).roundToDouble()}%',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              )
-            ],
-          ),
-        );
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    try {
+      // Đăng nhập lại để xác thực mật khẩu hiện tại
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: 'txt_email.text',
+        password: currentPassword,
+      );
+
+      // Kiểm tra xem đăng nhập lại có thành công không
+      if (userCredential.user != null) {
+        // Nếu đăng nhập thành công, thay đổi mật khẩu
+        await userCredential.user!.updatePassword(newPassword);
+
+        // Hiển thị thông báo thay đổi mật khẩu thành công
+        //showSnackbar("Thay đổi mật khẩu thành công");
       } else {
-        return const SizedBox(height: 50,);
+        // Nếu đăng nhập lại không thành công, hiển thị thông báo lỗi
+        //showSnackbar("Thay đổi mật khẩu không thành công");
       }
-      
-    },
-  );
+    } catch (e) {
+      print("Error changing password: $e");
+      // Xử lý lỗi thay đổi mật khẩu
+      //showSnackbar("Thay đổi mật khẩu không thành công");
+    }
+  }
+
+  void showSnackbar(String message) {
+    ScaffoldMessenger.of(context as BuildContext).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +182,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       )
                       :
                       (Image.network(
-                        'image_url',
+                        imageUrl,
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ))
@@ -214,6 +208,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: name,
                 hintText: "Username",
                 isPasswordField: false,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 10,
@@ -224,6 +224,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 hintText: "Email",
                 isPasswordField: false,
                 isEnable: false,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 10,
@@ -233,6 +239,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: location,
                 hintText: "Địa điểm",
                 isPasswordField: false,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 10,
@@ -242,6 +254,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: phone,
                 hintText: "Phone",
                 isPasswordField: false,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 10,
@@ -251,6 +269,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: password,
                 hintText: "Password",
                 isPasswordField: true,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(
                 height: 30,
@@ -277,8 +301,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                     onPressed: (){
-                      editUser();
-                      uploadFile();
+                      setState(() {
+                        editUser();  
+                        //uploadFile();
+                      });
+                      
+                      //uploadFile();
                       //Navigator.pop(context);
                     },
                     child: const Text('Lưu'),

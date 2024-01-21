@@ -46,7 +46,7 @@ class _OrderScreenState extends State<OrderScreen> {
         print(user.length);
         print(lst_order);
         print(lst_order.length);
-        setState(() {
+        setState((){
           
         }); // Trigger a rebuild with the fetched data
       }
@@ -86,21 +86,16 @@ class _OrderScreenState extends State<OrderScreen> {
           itemCount: lst_order.length,
           itemBuilder: (context, index){
             try{
-              if(user[widget.userToken]['orders'][index]['status']==true)
-                titleOrder = 'Bạn đã đặt thành công một ${user[widget.userToken]['orders'][index]['name']}';
-              else if(user[widget.userToken]['orders'][index]['status']==false)
-                titleOrder = 'Bạn đã hủy đơn hàng';
-              else titleOrder = 'Giao hàng không thành công';
-
+                titleOrder = 'Bạn đã đặt thành công ${user[widget.userToken]['orders'][index].length} sản phẩm';
               return OrderItem(
-                title: Text(titleOrder, style: TextStyle(color: user[widget.userToken]['orders'][index]['status']?Colors.green[500]:Colors.yellow,fontSize: 20),), 
-                path: user[widget.userToken]['orders'][index]['path'], 
-                name: user[widget.userToken]['orders'][index]['name'], 
-                price: user[widget.userToken]['orders'][index]['price'], 
-                origin: user[widget.userToken]['orders'][index]['origin'], 
-                quantity: user[widget.userToken]['orders'][index]['quantity'],
-                status: user[widget.userToken]['orders'][index]['status'],
-                idx: widget.userToken
+                title: Text(titleOrder), 
+                path: user[widget.userToken]['orders'][index][0]['path']??'', 
+                name: user[widget.userToken]['orders'][index][0]['name']??'', 
+                price: user[widget.userToken]['orders'][index][0]['price']??'', 
+                origin: user[widget.userToken]['orders'][index][0]['origin']??'', 
+                quantity: user[widget.userToken]['orders'][index][0]['quantity']??'',
+                idx: index,
+                userToken: widget.userToken,
               );
             }catch(e){
               print(e.toString());

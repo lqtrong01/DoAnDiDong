@@ -1,11 +1,12 @@
+import 'package:app_thuong_mai/Item/order_detail_item.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class OrderDetail extends StatefulWidget {
   final int idx;
-  final int quantity;
   final bool status;
-  const OrderDetail({super.key, required this.idx, required this.quantity, required this.status});
+  final int userToken;
+  const OrderDetail({super.key, required this.idx, required this.status, required this.userToken});
 
   @override
   State<OrderDetail> createState() => _OrderDetailState();
@@ -17,8 +18,7 @@ class _OrderDetailState extends State<OrderDetail> {
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
 
-  final List<Map<dynamic, dynamic>> user = [];
-  final List<dynamic> lst_order = [];
+  final List<Map<dynamic, dynamic>> lst_order = [];
 
   @override
   void initState() {
@@ -31,15 +31,10 @@ class _OrderDetailState extends State<OrderDetail> {
       DataSnapshot? dataSnapshot = event.snapshot;
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
-        Map<dynamic, dynamic> data = (dataSnapshot.value as Map)['users'];
-        data.forEach((key,value) {
-          user.add(value);
+        List<dynamic> data = (dataSnapshot.value as Map)['users'][widget.userToken]['orders'][widget.idx];
+        data.forEach((value) {
+          lst_order.add(value);
         });
-        int count = user[2]['orders'].length;
-        for(int i=0;i<count;i++){
-          lst_order.add(user[2]['orders']);
-        }
-        print(user.length);
         print(lst_order.length);
         setState(() {}); // Trigger a rebuild with the fetched data
       }
@@ -55,9 +50,18 @@ class _OrderDetailState extends State<OrderDetail> {
       ),
     );
   }
-
+  String name = '';
+  String phone = '';
+  String location = '';
   @override
   Widget build(BuildContext context) {
+    try{
+      name = lst_order[0]['username'];
+      phone = lst_order[0]['phone'];
+      location = lst_order[0]['location'];
+    }catch(e){
+      print(e.toString());
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thông tin đơn hàng', style: TextStyle(color: Colors.black),),
@@ -73,17 +77,52 @@ class _OrderDetailState extends State<OrderDetail> {
       body: ListView(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(100, 0, 100, 0),
+            padding: const EdgeInsets.all(0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                const SizedBox(height: 10.0,),
+                Container(
+                  child: SizedBox(
+                    height: 144.0,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Địa chỉ nhận hàng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        ListTile(
+                          title:Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color.fromRGBO(96, 96, 96, 1)),),
+                            Text('(+84) '+ phone, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color.fromRGBO(96, 96, 96, 1)),),
+                            Text(location, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color.fromRGBO(96, 96, 96, 1)),),
+                          ],
+                          ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10.0,),
                 SizedBox(
+                  width: double.infinity,
                   height: 300,
                   child: ListView.builder(
                     scrollDirection: Axis.vertical,
                     itemCount: lst_order.length,
                     itemBuilder: (context,index){
-
+                      return OrderDetailItem(
+                        path: lst_order[index]['path']??'', 
+                        name: lst_order[index]['name']??'', 
+                        origin: lst_order[index]['origin']??'', 
+                        price: lst_order[index]['price']??'',
+                        quantity: lst_order[index]['quantity'],
+                        token: lst_order[index]['token']??0, 
+                        userToken: widget.userToken
+                      );
                     }
                   ),
                 )
@@ -103,16 +142,12 @@ class _OrderDetailState extends State<OrderDetail> {
               color: const Color.fromRGBO(87, 175, 115, 1),
             ),
             child: Visibility(
-              child: TextButton(
-                onPressed: (){}, 
-                child: Text(
-                  widget.status?'Hủy đơn hàng':'Mua lại', 
-                  style: const TextStyle(
-                    color: Colors.white ,
-                    fontSize: 28
-                  ),
-                )
-              ),
+              child: Expanded(
+                child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),
+                  onPressed: () {
+                  }, 
+                  child: Text(widget.status?'Hủy đơn hàng':'Mua lại',style: TextStyle(fontWeight: FontWeight.w500,fontSize: 18.0)))
+              )
             ),
           ),
           Spacer()

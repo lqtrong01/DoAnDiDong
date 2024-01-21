@@ -21,78 +21,88 @@ class Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        border: Border.all(width: 1.0, color: const Color.fromRGBO(196, 198, 198, 1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.network(
-            path,
-            height: 50.0,
-            width: 50.0,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 6.0,),
-          Container(
-            width: 150,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(width: 20.0,),
-                Text(
-                  name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            )
-          ),
-          Container(
-            width: 150,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(width: 20.0,),
-                Text(
-                  origin,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            )
-          ),
-          Container(
-            width: 150,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  'Price: ${price.toString()}',
-                ),
-                IconButton(
-                  onPressed: (){
-                    try
-                    {
-                      Navigator.push(
-                        context, 
-                        MaterialPageRoute(
-                          builder: (context) => DetailItem(idx: idx,userToken: userToken,)
-                        )
-                      );
-                    }
-                    catch(e){
-                      print(e.toString());
-                    }
-                  },
-                  icon: const Icon(Icons.add_box_outlined),
-                  color: const Color.fromRGBO(87, 175, 115, 1),
-                )
-              ],
-            ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context, 
+          MaterialPageRoute(
+            builder: (context) => DetailItem(idx: idx,userToken: userToken,)
           )
-        ],
-      ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          border: Border.all(width: 1.0, color: const Color.fromRGBO(196, 198, 198, 1)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.network(
+              path,
+              height: 50.0,
+              width: 50.0,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 6.0,),
+            Container(
+              width: 150,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 20.0,),
+                  Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              )
+            ),
+            Container(
+              width: 150,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 20.0,),
+                  Text(
+                    origin,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              )
+            ),
+            Container(
+              width: 150,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    'Price: ${price.toString()}',
+                  ),
+                  IconButton(
+                    onPressed: (){
+                      try
+                      {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (context) => DetailItem(idx: idx,userToken: userToken,)
+                          )
+                        );
+                      }
+                      catch(e){
+                        print(e.toString());
+                      }
+                    },
+                    icon: const Icon(Icons.add_box_outlined),
+                    color: const Color.fromRGBO(87, 175, 115, 1),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      )
     );
   }
 }

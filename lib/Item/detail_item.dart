@@ -1,3 +1,5 @@
+import 'package:app_thuong_mai/screen/cart_screen.dart';
+import 'package:app_thuong_mai/screen/favourite_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -19,29 +21,34 @@ class _DetailItemState extends State<DetailItem> {
   ).reference();
 
   List<Map<dynamic, dynamic>> products = [];
-  List<dynamic> infoUser = [];
+  List<Map<dynamic, dynamic>> users = [];
   List<Map<dynamic,dynamic>> lst_cat = [];
+  List<Map<dynamic, dynamic>> lst_favourite = [];
   double prize = 0.0;
   late int indexCheck;
-  late bool isCheck;
+  bool isCat = false;
+  bool isFav = false;
+  bool _isFav = false;
+  bool isCheck = false;
+  late int indexFav;
   @override
   void initState() {
     super.initState();
     _fetchData();
     _checkData();
     _loadCountCategory();
-    isCheck = false;
   }
 
   Future<void> _loadCountCategory() async {
     try {
-      DatabaseEvent event = await _databaseReference.child('users/${widget.userToken}').child('categoryCount').once();
+      DatabaseEvent event = await _databaseReference.child('users/${widget.userToken}').once();
       DataSnapshot? dataSnapshot = event.snapshot;
 
       if (dataSnapshot != null && dataSnapshot.value != null) {
-        int fetchedUserNumber = dataSnapshot.value as int;
+        var fetchedNumber = dataSnapshot.value as Map;
         setState(() {
-          catNumber = fetchedUserNumber;
+          catNumber = fetchedNumber['categoryCount'];
+          favouriteNumber = fetchedNumber['favouriteCount'];
         });
       }
     } catch (error) {
@@ -69,7 +76,7 @@ class _DetailItemState extends State<DetailItem> {
   int _quantity = 1;
   bool _txtdetail = true;
   int catNumber = 0;
-
+  int favouriteNumber = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -94,38 +101,42 @@ class _DetailItemState extends State<DetailItem> {
 
   Future<void> _checkData() async {
     try {
-      // Get the current authenticated user
       User? user = FirebaseAuth.instance.currentUser;
+      DatabaseEvent event = await _databaseReference.once();
+      DataSnapshot? dataSnapshot = event.snapshot;
 
-      if (user != null) {
-        // Use orderByChild and equalTo to fetch user data based on email
-        DatabaseEvent event = await _databaseReference
-            .child('users')
-            .orderByChild('detail/email')
-            .equalTo(user.email)
-            .once();
-        DataSnapshot? dataSnapshot = event.snapshot;
-        
-        if (dataSnapshot != null && dataSnapshot.value != null) {
-          List<dynamic> userDataMap = dataSnapshot.value as List;
-          userDataMap.forEach((value){
-            infoUser.add(value);
-          });
-
-          setState(() {
-          });
-          print(infoUser[0]['cats']);
-          for(var values in infoUser[0]['cats']){
-            lst_cat.add(values);
-          }
-          // print(indexCheck);
-        } else {
-          // Handle the case where no data is found
-          print("No data found for user with email: ${user.email}");
+      if (dataSnapshot != null && dataSnapshot.value != null) {
+        List<dynamic> data = (dataSnapshot.value as Map)['users'];
+        data.forEach((value) {
+          users.add(value);
+        });
+        for(var category in users[widget.userToken]['cats']){
+          lst_cat.add(category);
+        }
+        for(var favourite in users?[widget.userToken]['favourites']!){
+          lst_favourite.add(favourite);
         }
       }
+      setState(() {
+        isCheck = false;
+        for(int i = 0 ;i <lst_favourite.length;i++){
+          if(lst_favourite[i]['token']==products[widget.idx]['token']){
+            isCheck = true;
+            if(lst_favourite[i]['status']==true){
+              indexFav = lst_favourite[i]['fav_token'];
+              isFav = false;
+              _isFav = true;
+            }
+            else {
+              indexFav = lst_favourite[i]['fav_token'];
+              isFav = true;
+              _isFav = false;
+            }
+          }
+        }
+        print(isFav);
+      });
     } catch (error) {
-      // Handle errors during the data fetching process
       print("Error fetching data: $error");
     }
   }
@@ -133,15 +144,16 @@ class _DetailItemState extends State<DetailItem> {
   void addNewCategory() async {
     try {
       for(int i = 0;i<lst_cat.length;i++){
-        if(lst_cat[i]['name']==products[widget.idx]['pro_name'] && lst_cat[i]['status']==true){
+        if(lst_cat[i]['token']==products[widget.idx]['token']&&lst_cat[i]['status']==true){
           indexCheck = lst_cat[i]['cat_token'];
-          isCheck = true;
+          isCat = true;
         }
       }
-      
-      if(isCheck){
-          await _databaseReference.child('users/${widget.userToken}').child('cats/${indexCheck}').set({
+      isCat?true:false;
+      if(isCat){
+        await _databaseReference.child('users/${widget.userToken}').child('cats/${indexCheck}').update({
           'path': products[widget.idx]['path'],
+          'origin': products[widget.idx]['origin'],
           'name': products[widget.idx]['pro_name'],
           'price': products[widget.idx]['price'].toString(),
           'quantity': (_quantity+lst_cat[indexCheck]['quantity']),
@@ -150,11 +162,16 @@ class _DetailItemState extends State<DetailItem> {
           'cat_token': indexCheck
         });
         showSnackbar('Cập nhật giỏ hàng thành công');
-        isCheck = false;
+        isCat = false;
+        {
+          resetScreen();
+        }
+        
       }
-      else{
+      else if(isCat==false) {
         await _databaseReference.child('users/${widget.userToken}').child('cats/${catNumber}').set({
           'path': products[widget.idx]['path'],
+          'origin':products[widget.idx]['origin'],
           'name': products[widget.idx]['pro_name'],
           'price': products[widget.idx]['price'].toString(),
           'quantity': _quantity,
@@ -164,17 +181,69 @@ class _DetailItemState extends State<DetailItem> {
         });
         showSnackbar('Thêm thành công vào giỏ hàng');
         catNumber++;
-        await _databaseReference.update({'categoryCount': catNumber,});
+        await _databaseReference.update({'users/${widget.userToken}/categoryCount': catNumber,});
+        {
+          resetScreen();
+        }
       }     
     } catch (error) {
       showSnackbar('Thêm thất bại');
     }
   }
 
+  void resetScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => DetailItem(userToken: widget.userToken,idx: widget.idx,)),
+    );
+  }
+
+  Future<void> addFavourite() async {
+    try{
+      if(isCheck){
+        if(isFav==true){
+          await _databaseReference.child('users/${widget.userToken}').child('favourites/${indexFav}').update({
+            'status': isFav,
+          });
+        }
+        else{
+          await _databaseReference.child('users/${widget.userToken}').child('favourites/${indexFav}').update({
+          'status': isFav,
+        });
+        }
+        showSnackbar('Chỉnh sửa yêu thích thành công');
+        {
+          resetScreen();
+        }
+      }
+      else {
+        await _databaseReference.child('users/${widget.userToken}').child('favourites/${favouriteNumber}').set({
+            'path': products[widget.idx]['path'],
+            'name': products[widget.idx]['pro_name'],
+            'price': products[widget.idx]['price'].toString(),
+            'origin': products[widget.idx]['origin'],
+            'status': true,
+            'token': widget.idx,
+            'fav_token': favouriteNumber
+        });
+        showSnackbar('Thêm yêu thích thành công');
+        favouriteNumber++;
+        await _databaseReference.update({'users/${widget.userToken}/favouriteCount': favouriteNumber,});
+        {
+          resetScreen();
+        }
+      }
+    }
+    catch(e)
+    {
+      print(e.toString());
+    }
+  }
+
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        duration: const Duration(seconds: 5),
+        duration: const Duration(seconds: 2),
         content: Text(message),
       ),
     );
@@ -220,7 +289,6 @@ class _DetailItemState extends State<DetailItem> {
       name = products[widget.idx]['pro_name'];
       price = products[widget.idx]['price'];
       description = products[widget.idx]['description'];
-
     } catch(e){print(e.toString());}
         
     return Scaffold(
@@ -284,8 +352,15 @@ class _DetailItemState extends State<DetailItem> {
                         ),
                         const Spacer(),
                         IconButton(
-                          icon: const Image(image: AssetImage('assets/icons/icons8-heart-24.png')),
-                          onPressed: (){}
+                          icon: Image(
+                            image: AssetImage('assets/icons/icons8-heart-24.png'),
+                            color: _isFav?Colors.pink:Color.fromRGBO(96, 96, 96, 1),
+                          ),
+                          onPressed:() {
+                            setState(() {
+                              addFavourite();
+                            });
+                          }, 
                         ),
                       
                       ],
@@ -365,7 +440,9 @@ class _DetailItemState extends State<DetailItem> {
                             fontSize: 18, color: Color.fromRGBO(87, 175, 115, 1)),
                       ),
                       onPressed: () {
-                        showMaterialBanner('Bạn muốn thêm sản phẩm này vào giỏ hàng');
+                        setState(() {
+                          showMaterialBanner('Bạn muốn thêm sản phẩm này vào giỏ hàng');
+                        });
                       },
                     ),
                   ],

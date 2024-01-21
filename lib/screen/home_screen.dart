@@ -1,5 +1,6 @@
 import 'package:app_thuong_mai/Item/item.dart';
 import 'package:app_thuong_mai/navigate/bot_nav.dart';
+import 'package:app_thuong_mai/screen/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -15,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   TextEditingController txtSearch = TextEditingController();
   Icon customIcon = const Icon(Icons.search);
-  Widget customSearchBar = const Text('Egg');
+  Widget customSearchBar = const Text('Tap Icon to search', style: TextStyle(color: Colors.black),);
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
@@ -43,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
         data.forEach((value) {
           products.add(value);
         });
-        print(products);
         for (int i = 0; i < products.length; i++) {
           if (products[i]['type'] == 'water')
             waters.add(products[i]);
@@ -80,6 +80,92 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        iconTheme: IconThemeData(color: Colors.black),
+          backgroundColor: Colors.white,
+          leading: null,
+        title: Container(
+          decoration: BoxDecoration(
+            border: Border.all(width: 1.0, color: Colors.grey),
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    if (customIcon.icon == Icons.search) {
+                      customIcon = const Icon(Icons.cancel);
+                      customSearchBar = Expanded(
+                        child: ListTile(
+                          title: TextField(
+                            controller: txtSearch,
+                            onChanged: (value) {
+                              onSearchTextChanged();
+                            },
+                            onTap: (){
+                              onSearchTextChanged();
+                            },
+                            decoration: const InputDecoration(
+                              hintText: 'Search anything...',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              border: InputBorder.none,
+                            ),
+                            style: const TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.search,
+                              size: 24,
+                            ),
+                            color: Colors.black,
+                            onPressed: () {
+                              setState(() {
+                                try{
+                                  onSearchTextChanged();
+                                  Navigator.push(
+                                    context, 
+                                    MaterialPageRoute(
+                                      builder: (context)=>SearchScreen(
+                                        lstSearch: displayProduct, 
+                                        userToken: widget.userToken
+                                      )
+                                    )
+                                  );
+                                }
+                                catch(e)
+                                {
+                                  print(e.toString());
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    } else {
+                      customIcon = const Icon(Icons.search);
+                      customSearchBar = const Text('Tap Icon to search', style: TextStyle(color: Colors.black),);
+                      txtSearch.clear();
+                    }
+                  });
+                },
+                icon: customIcon,
+              ),
+              const SizedBox(
+                width: 8.0,
+              ),
+              customSearchBar,
+            ],
+          ),
+        ),
+      ),
       body: ListView(
         children: [
           Padding(
@@ -90,66 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(
                   height: 8.0,
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(width: 1.0, color: Colors.grey),
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            if (customIcon.icon == Icons.search) {
-                              customIcon = const Icon(Icons.cancel);
-                              customSearchBar = Expanded(
-                                child: ListTile(
-                                  trailing: IconButton(
-                                    icon: const Icon(
-                                      Icons.search,
-                                      size: 24,
-                                    ),
-                                    color: Colors.black,
-                                    onPressed: () {},
-                                  ),
-                                  title: TextField(
-                                    controller: txtSearch,
-                                    onChanged: (value) {
-                                      onSearchTextChanged();
-                                    },
-                                    
-                                    decoration: const InputDecoration(
-                                      hintText: 'Search anything...',
-                                      hintStyle: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 18,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                      border: InputBorder.none,
-                                    ),
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              );
-                              onSearchTextChanged();
-                            } else {
-                              customIcon = const Icon(Icons.search);
-                              customSearchBar = const Text('....');
-                              txtSearch.clear();
-                            }
-                          });
-                        },
-                        icon: customIcon,
-                      ),
-                      const SizedBox(
-                        width: 8.0,
-                      ),
-                      customSearchBar,
-                    ],
-                  ),
-                ),
+                
                 const SizedBox(
                   height: 16.0,
                 ),
@@ -180,7 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemCount: vegetables.length,
                     itemBuilder: (context, index) {
                         print('vegetable' + products[index]['token'].toString());
-                        print(index.toString());
                         return vegetables.isEmpty?Container():Item(
                           path: vegetables[index]['path'],
                           name: vegetables[index]['pro_name'],
@@ -283,6 +309,13 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: const BotNav(idx: 0),
     );
   }
+
+  final List<String> commentoRandom = [
+    'Chuối',
+    'Táo',
+    'Sting',
+    'Cam',
+  ];
 
   final List<String> carouselImages = [
     'https://oatuu.org/wp-content/uploads/2023/06/adding-items-to-your-amazon-fresh-order-a-comprehensive-guide-2.jpg',

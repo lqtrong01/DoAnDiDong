@@ -16,7 +16,7 @@ class _favouriteScreenState extends State<FavouriteScreen> {
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
 
-  final List<Map<dynamic, dynamic>> user = [];
+  final List<Map<dynamic, dynamic>> users = [];
   final List<dynamic> lst_favourite = [];
 
   @override
@@ -33,17 +33,17 @@ class _favouriteScreenState extends State<FavouriteScreen> {
       if (dataSnapshot != null && dataSnapshot.value != null) {
         List<dynamic> data = (dataSnapshot.value as Map)['users'];
         data.forEach((value) {
-          user.add(value);
+          users.add(value);
         });
         try{
-          for (var value in user[widget.userToken]['favourites']) {
+          for (var value in users[widget.userToken]['favourites']) {
             lst_favourite.add(value);
           }
         }
         catch(e){
           print('error'+e.toString());
         }
-        print(user.length);
+        print(users.length);
         print(lst_favourite);
         print(lst_favourite.length);
         setState(() {
@@ -78,7 +78,7 @@ class _favouriteScreenState extends State<FavouriteScreen> {
               Navigator.pop(context);
             },
           ),
-        title: Text('Đơn hàng', style: TextStyle(color: Colors.black),),
+        title: Text('Yêu thích', style: TextStyle(color: Colors.black),),
       ),
       body: ListView.builder(
           physics: AlwaysScrollableScrollPhysics(),
@@ -86,13 +86,21 @@ class _favouriteScreenState extends State<FavouriteScreen> {
           itemCount: lst_favourite.length,
           itemBuilder: (context, index){
             try{
-              return FavouriteItem(
-                path: user[widget.userToken]['orders'][index]['path'], 
-                name: user[widget.userToken]['orders'][index]['name'], 
-                origin: user[widget.userToken]['orders'][index]['origin'], 
-                price: user[widget.userToken]['orders'][index]['price'], 
-                status: user[widget.userToken]['orders'][index]['status']
-              );
+              if(users[widget.userToken]['favourites'][index]['status']==true){
+                return FavouriteItem(
+                  path: users[widget.userToken]['favourites'][index]['path']??'', 
+                  name: users[widget.userToken]['favourites'][index]['name']??'', 
+                  origin: users[widget.userToken]['favourites'][index]['origin']??'', 
+                  price: users[widget.userToken]['favourites'][index]['price']??'', 
+                  status: users[widget.userToken]['favourites'][index]['status']??'',
+                  token: users[widget.userToken]['favourites'][index]['token'],
+                  userToken: widget.userToken,
+                );
+              }
+              else {
+                return const SizedBox();
+              }
+              
             }catch(e){
               print(e.toString());
             }

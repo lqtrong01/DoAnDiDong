@@ -14,6 +14,17 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.black),
+          backgroundColor: Colors.white,
+          leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_outlined),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        title: Text('Danh sách sản phẩm', style: TextStyle(color: Colors.black),),
+      ),
       body: ListView(
         children: [
           Padding(
@@ -30,14 +41,26 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   itemCount: widget.lstSearch.length,
                   itemBuilder: (context, index) {
-                    return Item(
-                      path: widget.lstSearch[index]['path'],
-                      name: widget.lstSearch[index]['pro_name'],
-                      price: widget.lstSearch[index]['price'],
-                      origin: widget.lstSearch[index]['origin'],
-                      idx: index,
-                      userToken: widget.userToken,
-                    );
+                    try{
+                      if(widget.lstSearch[index]['quantity']>0){
+                          return Item(
+                          path: widget.lstSearch[index]['path'],
+                          name: widget.lstSearch[index]['pro_name'],
+                          price: widget.lstSearch[index]['price'],
+                          origin: widget.lstSearch[index]['origin'],
+                          idx: widget.lstSearch[index]['token'],
+                          userToken: widget.userToken,
+                        );
+                      }
+                      else {
+                        return const SizedBox();
+                      }
+                    }
+                    catch(e)
+                    {
+                      print(e.toString());
+                    }
+                    
                   },
                 )
               ],

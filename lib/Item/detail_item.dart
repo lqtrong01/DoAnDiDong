@@ -1,5 +1,6 @@
 import 'package:app_thuong_mai/screen/cart_screen.dart';
 import 'package:app_thuong_mai/screen/favourite_screen.dart';
+import 'package:app_thuong_mai/screen/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -24,6 +25,7 @@ class _DetailItemState extends State<DetailItem> {
   List<Map<dynamic, dynamic>> users = [];
   List<Map<dynamic,dynamic>> lst_cat = [];
   List<Map<dynamic, dynamic>> lst_favourite = [];
+  final List<dynamic> lst_order = [];
   double prize = 0.0;
   late int indexCheck;
   bool isCat = false;
@@ -110,6 +112,11 @@ class _DetailItemState extends State<DetailItem> {
         data.forEach((value) {
           users.add(value);
         });
+        for(int i = 0;i< users[widget.userToken]['cats'].length;i++){
+          if(users[widget.userToken]['cats'][i]['status']==true){
+            lst_order.add(users[widget.userToken]['cats'][i]);
+          }
+        }
         for(var category in users[widget.userToken]['cats']){
           lst_cat.add(category);
         }
@@ -161,6 +168,11 @@ class _DetailItemState extends State<DetailItem> {
           'token': widget.idx,
           'cat_token': indexCheck
         });
+        await _databaseReference.child('shop_cat/${widget.idx}').update({
+          'quantity': products[widget.idx]['quantity']-_quantity,
+          'status': true,
+          'token': widget.idx,
+        });
         showSnackbar('Cập nhật giỏ hàng thành công');
         isCat = false;
         {
@@ -169,19 +181,29 @@ class _DetailItemState extends State<DetailItem> {
         
       }
       else if(isCat==false) {
-        await _databaseReference.child('users/${widget.userToken}').child('cats/${catNumber}').set({
-          'path': products[widget.idx]['path'],
-          'origin':products[widget.idx]['origin'],
-          'name': products[widget.idx]['pro_name'],
-          'price': products[widget.idx]['price'].toString(),
-          'quantity': _quantity,
-          'status': true,
-          'token': widget.idx,
-          'cat_token': catNumber
-        });
-        showSnackbar('Thêm thành công vào giỏ hàng');
-        catNumber++;
-        await _databaseReference.update({'users/${widget.userToken}/categoryCount': catNumber,});
+        if(products[widget.idx]['quantity']==0){
+          showSnackbar('Đã hết hàng');
+        }
+        else {
+          await _databaseReference.child('users/${widget.userToken}').child('cats/${catNumber}').set({
+            'path': products[widget.idx]['path'],
+            'origin':products[widget.idx]['origin'],
+            'name': products[widget.idx]['pro_name'],
+            'price': products[widget.idx]['price'].toString(),
+            'quantity': _quantity,
+            'status': true,
+            'token': widget.idx,
+            'cat_token': catNumber
+          });
+          await _databaseReference.child('shop_cat/${widget.idx}').update({
+            'quantity': products[widget.idx]['quantity']-_quantity,
+            'status': true,
+            'token': widget.idx,
+          });
+          showSnackbar('Thêm thành công vào giỏ hàng');
+          catNumber++;
+          await _databaseReference.update({'users/${widget.userToken}/categoryCount': catNumber,});
+        }  
         {
           resetScreen();
         }
@@ -243,6 +265,7 @@ class _DetailItemState extends State<DetailItem> {
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        backgroundColor: Colors.green[500],
         duration: const Duration(seconds: 2),
         content: Text(message),
       ),
@@ -305,6 +328,30 @@ class _DetailItemState extends State<DetailItem> {
           'Thông tin chi tiết',
           style: TextStyle(color: Colors.black),
         ),
+        actions: [
+          IconButton(
+            onPressed: (){
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: ((context) => CartScreen(userToken: widget.userToken))));
+          }, 
+          icon: Stack(
+            fit: StackFit.expand,
+            children: [
+              Icon(Icons.shopping_cart_outlined),
+              lst_order.length>0?Positioned(
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(87, 175, 115, 1),
+                    borderRadius: BorderRadius.circular(100)
+                  ),
+                  child: Text(lst_order.length.toString(), style: TextStyle(fontSize: 14,color: Colors.white),),
+                )
+              ):SizedBox()
+            ],
+          ),
+        )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(

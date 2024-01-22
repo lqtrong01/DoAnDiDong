@@ -1,38 +1,34 @@
-// import 'package:charts_flutter/flutter.dart' as charts;
-
-// class StatisticsItem {
-//   String year;
-//   String month;
-//   int financial;
-//   final charts.Color color;
-
-//   StatisticsItem({
-//     required this.year, 
-//     required this.month, 
-//     required this.financial, 
-//     required this.color
-//   });
-// }
-
-import 'dart:html';
-import 'package:app_thuong_mai/Item/statistics_item.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
 
-class StatisticsItem extends StatefulWidget {
+class StatisticsScreen extends StatefulWidget {
   final int userToken;
 
-  const StatisticsItem({
+  const StatisticsScreen({
     super.key,
     required this.userToken
   });
 
   @override
-  State<StatisticsItem> createState() => _StatisticsItemState();
+  State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsItemState extends State<StatisticsItem> {
+class StatisticsItem{
+  final int month;
+  final double financial;
+  final charts.Color color;
+
+  StatisticsItem({
+    required this.month,
+    required this.financial,
+    required this.color
+  });
+}
+
+
+class _StatisticsScreenState extends State<StatisticsScreen> {
+
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
@@ -43,6 +39,9 @@ class _StatisticsItemState extends State<StatisticsItem> {
 
   //Danh sách giỏ hàng
   List<dynamic> lst_orders = [];
+
+  int? selectedMonth; // Giá trị mặc định cho tháng (null nếu chưa chọn)
+  int? selectedYear;  // Giá trị mặc định cho năm (null nếu chưa chọn)
 
   @override
   void initState() {
@@ -71,52 +70,249 @@ class _StatisticsItemState extends State<StatisticsItem> {
       print("Error fetching data: $error");
     }
   }
+
   late String date;
-  int TachChuoi(String date, String type){
-    DateTime dateTime = DateTime.parse(date+'z');
-    print(dateTime);
-    print('tháng'+dateTime.month.toString());
-    print('năm'+dateTime.year.toString());
-    if(type=='month'){
+  late String total;
+
+  // Hàm tách chuỗi lấy tháng, năm trong dánh sách thành toán
+  int TachChuoi(String date, String type) {
+    DateTime dateTime = DateTime.parse(date + 'z');
+
+    if(type == 'month') {
       return dateTime.month;
     }
-    else if(type=='year'){
+    else if(type == 'year') {
       return dateTime.year;
     }
-    else return 0;
+    else 
+      return 0;
   }
-  int month = 0;
-  int year = 0;
+
+  // Hàm tính tổng total năm
+  double tinhTongTheoNam(int nam) {
+
+    double tong = 0.0;
+
+    for (int i = 0; i < lst_orders.length; i++) {
+
+      date = user[widget.userToken]['orders'][i][0]['ddmmyy'];
+      total = user[widget.userToken]['orders'][i][0]['total'];
+
+      int year = TachChuoi(date, 'year');
+
+      if (year == nam) {
+        tong += double.parse(total);
+      }
+    }
+    return tong;
+  }
+
+  // Hàm tính tổng total tháng
+  double tinhTongTheoThang(int thang, int nam) {
+
+    double tong = 0.0;
+
+    for (int i = 0; i < lst_orders.length; i++) {
+
+      date = user[widget.userToken]['orders'][i][0]['ddmmyy'];
+      total = user[widget.userToken]['orders'][i][0]['total'];
+
+      int month = TachChuoi(date, 'month');
+      int year = TachChuoi(date, 'year');
+
+      if (month == thang && year == nam) {
+        tong += double.parse(total);
+      }
+    }
+    return tong;
+  }
+
+  List<charts.Series<StatisticsItem, String>> getChartSeries() {
+
+    List<StatisticsItem> data = [];
+
+    for (int i = 0; i < lst_orders.length; i++) {
+
+      date = user[widget.userToken]['orders'][i][0]['ddmmyy'];
+      
+      int month = TachChuoi(date, 'month');
+      int year = TachChuoi(date, 'year');
+
+      if((selectedMonth == null || month == selectedMonth) &&
+        (selectedYear == null || year == selectedYear)) {
+        double tongTheoThang = tinhTongTheoThang(month, year);
+
+        data.add(
+          StatisticsItem(
+            month: month,
+            financial: tongTheoThang,
+            color: charts.MaterialPalette.gray.shadeDefault,
+          )
+        );
+      }
+    }
+
+    return [
+      charts.Series(
+        id: "financial",
+        data: data,
+        domainFn: (StatisticsItem series, _) => series.month.toString(),
+        measureFn: (StatisticsItem series, _) => series.financial,
+        colorFn: (StatisticsItem series, _) => series.color,
+      )
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    try{
-      date = user[widget.userToken]['orders'][0][0]['ddmmyy'];
-      month = TachChuoi(date, 'month');
-      year = TachChuoi(date, 'year');
-      print(month+year);
-    }
-    catch(e)
-    {
-      print(e.toString());
-    }
+
     return Scaffold(
+
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.black),
+
+        iconTheme: const IconThemeData(
+          color: Colors.black
+        ),
           backgroundColor: Colors.white,
           leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_outlined),
+          icon: const Icon(Icons.arrow_back_ios_new_outlined),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
-        title: Text('Thống kê', style: TextStyle(color: Colors.black),),
+        title: const Text(
+          'Thống kê', 
+          style: TextStyle(
+            color: Colors.black
+          ),
+        ),
       ),
+
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          
+
+          // ComboBox tháng
+          DropdownButton<int?>(
+            value: selectedMonth,
+            items: getMonthDropdownItems(),
+            onChanged: (int? newValue) {
+              setState(() {
+                selectedMonth = newValue;
+              });
+            },
+          ),
+
+          // ComboBox năm
+          DropdownButton<int?>(
+            value: selectedYear,
+            items: getYearDropdownItems(),
+            onChanged: (int? newValue) {
+              setState(() {
+                selectedYear = newValue;
+              });
+            },
+          ),
+
+          // Biểu đồ thống kê
+          Container(
+            height: 200,
+            child: charts.BarChart(
+              getChartSeries(),
+              animate: true,
+            ),
+          ),
         ],
-      )
+      ),
     );
   }
+
+  // Hàm danh sách các tháng của combobox tháng
+  List<DropdownMenuItem<int?>> getMonthDropdownItems() {
+
+    List<int> lst_month = lst_orders.map((order){
+      date = order[0]['ddmmyy'];
+      return TachChuoi(date, 'month');
+    }).toSet().toList();
+
+    lst_month.sort();
+
+    List<int?> months = [
+      null, 
+      ...lst_month
+    ];
+
+    return months.map((int? value) {
+
+      return DropdownMenuItem<int?>(
+        value: value,
+        child: Text(value == null ? 'Tất cả các tháng có trong năm' : value.toString()),
+      );
+    }).toList();
+  }
+
+  // Hàm danh sách các năm của combobox năm
+  List<DropdownMenuItem<int?>> getYearDropdownItems() {
+
+    List<int> lst_year = lst_orders.map((order){
+      date = order[0]['ddmmyy'];
+      return TachChuoi(date, 'year');
+    }).toSet().toList();
+
+    lst_year.sort();
+
+    List<int?> years = [
+      null,
+      ...lst_year
+    ];
+
+    return years.map((int? value) {
+
+      return DropdownMenuItem<int?>(
+        value: value,
+        child: Text(value == null ? 'Năm' : value.toString()),
+      );
+    }).toList();
+  }
 }
+
+// Expanded(
+//   child: ListView.separated(
+//     itemCount: lst_orders.length,
+//     separatorBuilder: (BuildContext context, int index) => Divider(),
+//     itemBuilder: (context, index) {
+//       String date = lst_orders[index][0]['ddmmyy'];
+//       String total = lst_orders[index][0]['total'];
+//       int month = TachChuoi(date, 'month');
+//       int year = TachChuoi(date, 'year');
+//       double tongTheoNam = tinhTongTheoNam(year);
+//       double tongTheoThang = tinhTongTheoThang(month, year);
+//       return Column(
+//         children: [
+//           Text('$month'),
+//           Text('$year'),
+//           Text('$total'),
+//           Text('$tongTheoNam'),
+//           Text('$tongTheoThang'),
+//         ],
+//       );
+//     },
+//   ),
+// ),
+// int month = 0;
+// int year = 0;
+// try{
+//   for(int i = 0; i < lst_orders.length; i++) {
+//     date = user[widget.userToken]['orders'][i][0]['ddmmyy'];
+//     print(date);
+//     total = user[widget.userToken]['orders'][i][0]['total'];
+//     print(total);
+//     month = TachChuoi(date, 'month');
+//     print(month);
+//     year = TachChuoi(date, 'year');
+//     print(year);
+//   }
+// }
+// catch(e)
+// {
+//   print(e.toString());
+// }

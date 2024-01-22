@@ -53,12 +53,14 @@ class _OrderDetailState extends State<OrderDetail> {
   String name = '';
   String phone = '';
   String location = '';
+  String total_price = '';
   @override
   Widget build(BuildContext context) {
     try{
       name = lst_order[0]['username'];
       phone = lst_order[0]['phone'];
       location = lst_order[0]['location'];
+      total_price = lst_order[0]['total'].toString();
     }catch(e){
       print(e.toString());
     }
@@ -125,7 +127,17 @@ class _OrderDetailState extends State<OrderDetail> {
                       );
                     }
                   ),
-                )
+                ),
+                SizedBox(height: 30.0,),
+                Column(
+                  children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                      Text("Tổng tiền",style: TextStyle(fontSize: 18, color: Colors.red),),
+                      Text("${total_price} VND", style: TextStyle(fontSize: 18, color: Color.fromRGBO(28, 126, 56, 1)),),
+                    ],)
+                  ],
+                ),
               ]
             )
           )
@@ -142,6 +154,7 @@ class _OrderDetailState extends State<OrderDetail> {
               color: const Color.fromRGBO(87, 175, 115, 1),
             ),
             child: Visibility(
+              visible: false,
               child: Expanded(
                 child: ElevatedButton(style:const ButtonStyle(backgroundColor: MaterialStatePropertyAll(Color.fromRGBO(87, 175, 115, 1))),
                   onPressed: () {

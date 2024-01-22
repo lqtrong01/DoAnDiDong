@@ -7,8 +7,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class BotNav extends StatefulWidget {
-  const BotNav({super.key, required this.idx});
+  const BotNav({super.key, required this.idx, required this.userToken});
   final int idx;
+  final int userToken;
   @override
   State<BotNav> createState() => _BotNavState();
 }
@@ -19,9 +20,9 @@ class _BotNavState extends State<BotNav> {
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
 
-  late int uid;
   final List<Map<dynamic, dynamic>> users = [];
   final Map<dynamic?, dynamic?> infoUser = {};
+  final List<dynamic> lst_order = [];
 
   @override
   void initState() {
@@ -46,10 +47,14 @@ class _BotNavState extends State<BotNav> {
             infoUser.addAll(users[i]['detail']);
           }
         }
+        for(int i = 0;i< users[infoUser['token']]['cats'].length;i++){
+          if(users[infoUser['token']]['cats'][i]['status']==true){
+            lst_order.add(users[infoUser['token']]['cats'][i]);
+          }
+        }
         print(infoUser);
         print(infoUser['token']);
         setState(() {
-          uid = infoUser['token'];
         }); // Trigger a rebuild with the fetched data
       }
     } catch (error) {
@@ -59,18 +64,30 @@ class _BotNavState extends State<BotNav> {
   
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic>? args =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-    User? user = args?['user'];
     return BottomNavigationBar(
       backgroundColor: Color.fromARGB(26, 255, 255, 255),
       fixedColor: Colors.green[500],
-      items: const [
+      items: [
         BottomNavigationBarItem(
           label: 'Trang chủ', icon: Icon(Icons.home_outlined,)
         ),
         BottomNavigationBarItem(
-          label: 'Giỏ hàng', icon: Icon(Icons.shopping_cart_outlined)
+          label: 'Giỏ hàng', 
+          icon: Stack(
+            children: [
+              Icon(Icons.shopping_cart_outlined),
+              lst_order.length>0?Positioned(
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromRGBO(87, 175, 115, 1),
+                    borderRadius: BorderRadius.circular(50)
+                  ),
+                  child: Text(lst_order.length.toString(), style: TextStyle(fontSize: 14,color: Colors.white),),
+                )
+              ):SizedBox()
+            ],
+          )
         ),
         BottomNavigationBarItem(
           label: 'Thông báo', icon: Icon(Icons.notifications_none_outlined)
@@ -87,22 +104,22 @@ class _BotNavState extends State<BotNav> {
         if (indexOfItem == 0 && indexOfItem != widget.idx) {
           Navigator.popUntil(context, (route) => route.isFirst);
           if (widget.idx != indexOfItem){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(userToken: uid,)));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(userToken: widget.userToken,)));
           }
         } else if (indexOfItem == 1 && indexOfItem != widget.idx) {
           Navigator.popUntil(context, (route) => route.isFirst);
           if (widget.idx != indexOfItem){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen(userToken: uid,)));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen(userToken: widget.userToken,)));
           }
         } else if (indexOfItem == 2 && indexOfItem != widget.idx) {
           Navigator.popUntil(context, (route) => route.isFirst);
           if (widget.idx != indexOfItem){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen(userToken: uid,)));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen(userToken: widget.userToken,)));
           }
         } else if (indexOfItem == 3 && indexOfItem != widget.idx) {
           Navigator.popUntil(context, (route) => route.isFirst);
           if (widget.idx != indexOfItem){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen(userToken: uid,)));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen(userToken: widget.userToken,)));
           }
         }
       },

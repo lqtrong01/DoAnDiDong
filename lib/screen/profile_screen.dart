@@ -1,6 +1,7 @@
 import 'package:app_thuong_mai/navigate/bot_nav.dart';
 import 'package:app_thuong_mai/screen/edit_profile_screen.dart';
 import 'package:app_thuong_mai/screen/favourite_screen.dart';
+import 'package:app_thuong_mai/screen/help_screen.dart';
 import 'package:app_thuong_mai/screen/loading_screen.dart';
 import 'package:app_thuong_mai/screen/login_screen.dart';
 import 'package:app_thuong_mai/screen/order_screen.dart';
@@ -221,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: ListTile(
                     onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: ((context) => StatisticsItem(userToken: widget.userToken,))));
+                      Navigator.push(context, MaterialPageRoute(builder: ((context) => StatisticsScreen(userToken: widget.userToken,))));
                     },
                     leading: const Icon(Icons.insert_chart_outlined_outlined),
                     title: const Text('Thống kê'),
@@ -236,7 +237,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     border: Border.all(width: 1, color: const Color.fromRGBO(196, 198, 198, 1))
                   ),
                   child: ListTile(
-                    onTap: (){},
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: ((context) => HelpScreen())));
+                    },
                     leading: const Icon(Icons.help_outline_outlined),
                     title: const Text('Help'),
                     trailing: const Icon(Icons.arrow_forward_ios_rounded),
@@ -284,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: const BotNav(idx: 3),
+      bottomNavigationBar: BotNav(idx: 3, userToken: widget.userToken,),
     );
   }
 }

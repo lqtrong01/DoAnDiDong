@@ -80,8 +80,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     // Kiểm tra xem tất cả các thông báo có trạng thái là false không
     bool allNotificationsFalse = user_cat.isNotEmpty &&
-        user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
-    bool ktra;
+    user_cat[widget.userToken]['notifications'] != null &&
+    user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
+    bool ktra=false;
+    print('Giá trị của allNotificationsFalse là: $allNotificationsFalse');
 
     return Scaffold(
       appBar: AppBar(
@@ -145,7 +147,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 }
               },
             ),
-            bottomNavigationBar: BotNav(idx: 2),
+            bottomNavigationBar: BotNav(idx: 2, userToken: widget.userToken,),
     );
   }
 }

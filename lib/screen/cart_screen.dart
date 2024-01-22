@@ -1,5 +1,6 @@
 import 'package:app_thuong_mai/Item/cart_item.dart';
 import 'package:app_thuong_mai/navigate/bot_nav.dart';
+import 'package:app_thuong_mai/screen/order_pay.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
@@ -123,7 +124,7 @@ class _CartScreenState extends State<CartScreen> {
                           origin: user[widget.userToken]['cats'][index]['origin']??'',
                           quantity: user[widget.userToken]['cats'][index]['quantity'],
                           status: user[widget.userToken]['cats'][index]['status'],
-                          userToken: 0,
+                          userToken: widget.userToken,
                           idx: user[widget.userToken]['cats'][index]['cat_token'],
                         );
                       }
@@ -153,6 +154,7 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   onPressed: (){
                     checkStatus();
+                    Navigator.push(context, MaterialPageRoute(builder: ((context) => OrderPay(userToken: widget.userToken))));
                   }, 
                   child: const Text(
                     'Thanh Toán',
@@ -167,7 +169,7 @@ class _CartScreenState extends State<CartScreen> {
           ],
         ) 
       ),
-      bottomNavigationBar: const BotNav(idx: 1),
+      bottomNavigationBar: BotNav(idx: 1, userToken: widget.userToken,),
     );
   }
 }

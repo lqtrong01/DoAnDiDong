@@ -27,6 +27,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: ListView(
         children: [
+          widget.lstSearch.length>0?
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -65,7 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 )
               ],
             ),
-          )
+          ): Center(child: Text('Không tìm thấy sản phẩm'),)
         ],
       ),
     );

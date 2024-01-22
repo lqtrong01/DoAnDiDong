@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:app_thuong_mai/Item/utils.dart';
+import 'package:app_thuong_mai/screen/profile_screen.dart';
 import 'package:app_thuong_mai/widgets/form_container_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -66,30 +69,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future selectFile() async {
-    ImagePicker imagePicker = ImagePicker();
-    XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
-    
-    final result = await FilePicker.platform.pickFiles();
-    if(result==null) return;
-    setState(() {
-      pickerFile = result.files.first;
-    });
-  }
+  Future<void> selectAndUploadImageToFirebase() async {
+  final file =  await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (file == null) return null;
+    Uint8List imageData = await File(file.path!).readAsBytes();
+    String fileName = DateTime.now().microsecondsSinceEpoch.toString();
+    Reference referenceRoot = FirebaseStorage.instance.ref();
+    Reference referenceDireImages = referenceRoot.child('images');
+    Reference referenceUpLoad = referenceDireImages.child(fileName);
 
-  Future uploadFile() async {
-    final path = '${pickerFile!.name}';
-    final file = File(pickerFile!.path!);
-    final ref = FirebaseStorage.instance.ref().child(path);
-    setState(() {
-      uploadTask = ref.putFile(file);
-    });
-    final snapshot = await uploadTask!.whenComplete((){});
-    final urlDownload = await snapshot.ref.getDownloadURL();
-    imageUrl = urlDownload;
-    setState(() {
-      uploadTask = null;
-    });
+    try {
+      await referenceUpLoad.putData(imageData, SettableMetadata(contentType: 'image'));
+      
+      // Lấy đường dẫn URL của ảnh sau khi tải lên
+      String downloadUrl = await referenceUpLoad.getDownloadURL();
+      print('Download URL: $downloadUrl');
+      
+      imageUrl = downloadUrl;
+    } catch (error) {
+      print('Error uploading image to Firebase Storage: $error');
+      // Xử lý lỗi nếu cần thiết
+      return null;
+    }
   }
 
   void editUser() async {
@@ -104,6 +105,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'avatar': imageUrl??'',
           'token': widget.userToken
         });
+        //changePassword(currentPassword, password.text);
+        showSnackbar('Cập nhật thông tin thành công');
       }
       else { 
         showSnackbar('Cập nhật thông tin không thành công');
@@ -123,14 +126,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       // Kiểm tra xem đăng nhập lại có thành công không
       if (userCredential.user != null) {
-        // Nếu đăng nhập thành công, thay đổi mật khẩu
         await userCredential.user!.updatePassword(newPassword);
-
-        // Hiển thị thông báo thay đổi mật khẩu thành công
-        //showSnackbar("Thay đổi mật khẩu thành công");
+        showSnackbar("Thay đổi mật khẩu thành công");
       } else {
-        // Nếu đăng nhập lại không thành công, hiển thị thông báo lỗi
-        //showSnackbar("Thay đổi mật khẩu không thành công");
+        showSnackbar("Thay đổi mật khẩu không thành công");
       }
     } catch (e) {
       print("Error changing password: $e");
@@ -142,11 +141,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void showSnackbar(String message) {
     ScaffoldMessenger.of(context as BuildContext).showSnackBar(
       SnackBar(
+        duration: const Duration(seconds: 3),
+        backgroundColor: const Color.fromRGBO(87, 175, 115, 1),
         content: Text(message),
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +159,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         icon: const Icon(Icons.arrow_back_ios_new_outlined),
           onPressed: () {
             Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen(userToken: widget.userToken,)),
+            );
           },
         ),
       ),
@@ -197,7 +201,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                     child: Text('Select File'),
-                    onPressed: selectFile,
+                    onPressed: selectAndUploadImageToFirebase,
                   ),
                 ),
               const SizedBox(
@@ -264,18 +268,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(
                 height: 10,
               ),
-              FormContainerWidget(
-                icon: const Icon(Icons.password_outlined),
-                controller: password,
-                hintText: "Password",
-                isPasswordField: true,
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter some text';
-                  }
-                  return null;
-                },
-              ),
+              // FormContainerWidget(
+              //   icon: const Icon(Icons.password_outlined),
+              //   controller: password,
+              //   hintText: "Password",
+              //   isPasswordField: true,
+              //   isEnable: false,
+              //   validator: (String? value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please enter some text';
+              //     }
+              //     return null;
+              //   },
+              // ),
               const SizedBox(
                 height: 30,
               ),

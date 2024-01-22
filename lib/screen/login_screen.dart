@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController txt_password = TextEditingController();
   late String email;
   late String passWord;
-  late int userToken;
+  int userToken = 0;
 
   int userCount = 0;
   bool isCheckedVisiblePassword = true;
@@ -39,12 +39,29 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isClosing = false;
 
   List<Map<dynamic, dynamic>> users = [];
+  final Map<dynamic?, dynamic?> infoUser = {};
   final DatabaseReference _databaseReference = FirebaseDatabase(
     databaseURL:
         'https://app-thuong-mai-ndtt-default-rtdb.asia-southeast1.firebasedatabase.app/',
   ).reference();
 
+  Future<void> _fetchData() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      DatabaseEvent event = await _databaseReference.once();
+      DataSnapshot? dataSnapshot = event.snapshot;
 
+      if (dataSnapshot != null && dataSnapshot.value != null) {
+        List<dynamic> data = (dataSnapshot.value as Map)['users'];
+        data.forEach((value) {
+          users.add(value);
+        });
+        print(users);
+      }
+    } catch (error) {
+      print("Error fetching data: $error");
+    }
+  }
 
   Future<void> _loadSavedUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -75,8 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void autoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedEmail = prefs.getString('savedEmail');
-    String? savedPassword = prefs.getString('savedPassword');
+    String? savedEmail = prefs.getString('savedEmail')??null;
+    String? savedPassword = prefs.getString('savedPassword')??null;
 
     if (savedEmail != null && savedPassword != null) {
       // Thực hiện đăng nhập tự động
@@ -230,6 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     _loadSavedUser();
     _loadUserCount();
+    _fetchData();
     /* isChecked?autoLogin():null; */
     isCheckedVisiblePassword=true;
     super.initState();
@@ -316,27 +334,27 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (userCredential != null) {
                           if(users!=null){
                             for(int i=0;i<users.length;i++){
-                              if(users[i]['email']==email){
-                                userToken=users[i]['token'];
+                              if(users[i]['detail']['email']==email){
+                                userToken=users[i]['detail']['token'];
                                 print(userToken);
                               }
                             }
-                            try {
-                              User? user = userCredential.user;
-                              if (user != null) {
-                                Provider.of<UserProvider>(context, listen: false).setUser(user);
-                              } else {
-                                print("Some error occurred");
-                              }
-                            } catch (e) {
-                              print("Error during sign in: $e");
-                            }
+                            // try {
+                            //   User? user = userCredential.user;
+                            //   if (user != null) {
+                            //     Provider.of<UserProvider>(context, listen: false).setUser(user);
+                            //   } else {
+                            //     print("Some error occurred");
+                            //   }
+                            // } catch (e) {
+                            //   print("Error during sign in: $e");
+                            // }
                           }
                           // Đăng nhập thành công, bạn có thể thực hiện các hành động sau đăng nhập ở đây
                           showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
                           isChecked?_saveUser():_resetsaveUser();
                           Navigator.popUntil(context, (route) => route.isFirst);
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => BotNav(idx: 0),));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(userToken: userToken,),));
                         } else {
                           // Xử lý lỗi đăng nhập
                           showSnackbar("Đăng nhập thất bại");
@@ -390,18 +408,26 @@ class _LoginScreenState extends State<LoginScreen> {
           UserCredential? userCredential = await _signInWithGoogle();
           if(userCredential!=null){
             setState(() {
-              try {
-                User? user = userCredential.user;
-                if (user != null) {
-                  Provider.of<UserProvider>(context, listen: false).setUser(user);
-                } else {
-                  print("Some error occurred");
+              if(users!=null){
+                for(int i=0;i<users.length;i++){
+                  if(users[i]['detail']['email']==userCredential.user!.email){
+                    userToken=users[i]['detail']['token'];
+                    print(userToken);
+                  }
                 }
-              } catch (e) {
-                print("Error during sign in: $e");
+                // try {
+                //   User? user = userCredential.user;
+                //   if (user != null) {
+                //     Provider.of<UserProvider>(context, listen: false).setUser(user);
+                //   } else {
+                //     print("Some error occurred");
+                //   }
+                // } catch (e) {
+                //   print("Error during sign in: $e");
+                // }
               }
               Navigator.popUntil(context, (route) => route.isFirst);
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>BotNav(idx: 0)));
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>HomeScreen(userToken: userToken)));
             });
             showSnackbar("Đăng nhập thành công: ${userCredential.user?.email}");
           }else{

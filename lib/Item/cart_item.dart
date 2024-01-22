@@ -68,12 +68,20 @@ class _CartItemState extends State<CartItem> {
                 updateStatus();
                 Navigator.pop(context);
                 (context as Element).reassemble();
+                resetScreen();
               },
               child: Text('Xóa'),
             ),
           ],
         );
       },
+    );
+  }
+
+  void resetScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => CartScreen(userToken: widget.userToken)),
     );
   }
 
@@ -165,7 +173,6 @@ class _CartItemState extends State<CartItem> {
                     onPressed: (){
                       setState(() {
                         deleteProduct(context);
-                        CartScreen(userToken: 0);
                       });
                     }, 
                     icon: const Icon(

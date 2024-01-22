@@ -306,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      bottomNavigationBar: const BotNav(idx: 0),
+      bottomNavigationBar: BotNav(idx: 0, userToken: widget.userToken),
     );
   }
 

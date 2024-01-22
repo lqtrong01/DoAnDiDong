@@ -55,6 +55,12 @@ class _ThongbaoMuaState extends State<ThongbaoMua> {
       ),
     );
   }
+  void resetScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => ThongbaoMua(userToken: 0)),
+    );
+  }
 
   void editUser(int index) async {
     try {
@@ -78,15 +84,18 @@ class _ThongbaoMuaState extends State<ThongbaoMua> {
   Widget build(BuildContext context) {
     // Kiểm tra xem tất cả các thông báo có trạng thái là false không
     bool allNotificationsFalse = user_cat.isNotEmpty &&
-        user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
-    bool ktra;
-
+    user_cat[widget.userToken]['notifications'] != null &&
+    user_cat[widget.userToken]['notifications'].every((notification) => notification['status'] == false);
+    bool ktra=false;
+    print('Giá trị của allNotificationsFalse là: $allNotificationsFalse');
     return Scaffold(
       appBar: AppBar(
         title: Text('Thông báo', style: TextStyle(color: Colors.black)),
       ),
-      body: allNotificationsFalse
-          ? Center(
+      body: 
+      allNotificationsFalse
+          ? 
+          Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -118,6 +127,7 @@ class _ThongbaoMuaState extends State<ThongbaoMua> {
                         setState(() {
                           lst_notification.removeAt(index);
                           editUser(index);
+                          resetScreen();
                           print(lst_notification);
                           item.removeAt(index);
                           ktra = user_cat.isNotEmpty &&
